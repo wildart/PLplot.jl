@@ -1,6 +1,6 @@
 The PlPlot.jl package is licensed under the Simplified "2-clause" BSD License:
 
-> Copyright (c) 2015: wildart.
+> Copyright (c) 2015: Art Wild.
 >
 > Redistribution and use in source and binary forms, with or without
 > modification, are permitted provided that the following conditions are
