@@ -1,5 +1,3 @@
-module PLplot
-
 typealias PLINT Cint
 typealias PLFLT Cdouble
 typealias PLSTR Cstring
@@ -79,7 +77,11 @@ for (func, arg_types) in [
 ( :plline                   ,( PLINT, Ptr{PLFLT}, Ptr{PLFLT} ) ),
 ( :plline3                  ,( PLINT, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLFLT} ) ),
 ( :pllsty                   ,( PLINT, ) ),
-# ( :plmap                    c_plmap( Void ( *mapform )( PLINT, PLFLT *, PLFLT * ), const char *type, PLFLT minlong, PLFLT maxlong, PLFLT minlat, PLFLT maxlat );
+( :plmap                    ,( Ptr{Void}, PLSTR, PLFLT, PLFLT, PLFLT, PLFLT ) ),
+( :plmapline                ,( Ptr{Void}, PLSTR, PLFLT, PLFLT, PLFLT, PLFLT, Ptr{PLINT}, PLINT ) ),
+( :plmapstring              ,( Ptr{Void}, PLSTR, PLSTR, PLFLT, PLFLT, PLFLT, PLFLT, Ptr{PLINT}, PLINT ) ),
+( :plmaptex                 ,( Ptr{Void}, PLSTR, PLFLT, PLFLT, PLFLT, PLSTR, PLFLT, PLFLT, PLFLT, PLFLT, PLINT ) ),
+( :plmapfill                ,( Ptr{Void}, PLSTR, PLFLT, PLFLT, PLFLT, PLFLT, Ptr{PLINT}, PLINT ) ),
 # ( :plmeridians              c_plmeridians
 # ( :plmesh                   c_plmesh( const PLFLT *x, const PLFLT *y, const PLFLT * const *z, PLINT nx, PLINT ny, PLINT opt );
 # ( :plmeshc                  c_plmeshc( const PLFLT *x, const PLFLT *y, const PLFLT * const *z, PLINT nx, PLINT ny, PLINT opt, const PLFLT *clevel, PLINT nlevel );
@@ -90,21 +92,21 @@ for (func, arg_types) in [
 # ( :plot3dc                  c_plot3dc
 # ( :plot3dcl                 c_plot3dcl
 # ( :plparseopts              c_plparseopts( int *p_argc, const char **argv, PLINT mode );
-# ( :plpat                    c_plpat( PLINT nlin, const PLINT *inc, const PLINT *del );
-# ( :plpath                   c_plpath( PLINT n, PLFLT x1, PLFLT y1, PLFLT x2, PLFLT y2 );
-# ( :plpoin                   c_plpoin
-# ( :plpoin3                  c_plpoin3
-# ( :plpoly3                  c_plpoly3
-# ( :plprec                   c_plprec
-# ( :plpsty                   c_plpsty
-# ( :plptex                   c_plptex
-# ( :plptex3                  c_plptex3
+( :plpat                    ,( PLINT, Ptr{PLINT}, Ptr{PLINT} ) ),
+( :plpath                   ,( PLINT, PLFLT, PLFLT, PLFLT, PLFLT ) ),
+( :plpoin                   ,( PLINT, Ptr{PLFLT}, Ptr{PLFLT}, PLINT ) ),
+( :plpoin3                  ,( PLINT, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLFLT}, PLINT ) ),
+( :plpoly3                  ,( PLINT, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLINT}, PLINT ) ),
+( :plprec                   ,( PLINT, PLINT ) ),
+( :plpsty                   ,( PLINT, ) ),
+( :plptex                   ,( PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLSTR ) ),
+( :plptex3                  ,( PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLSTR ) ),
 # ( :plreplot                 c_plreplot
 # ( :plrgbhls                 c_plrgbhls
 # ( :plschr                   c_plschr
-# ( :plscmap0                 c_plscmap0
-# ( :plscmap0a                c_plscmap0a
-# ( :plscmap0n                c_plscmap0n
+( :plscmap0                 ,( Ptr{PLINT}, Ptr{PLINT}, Ptr{PLINT}, PLINT ) ),
+( :plscmap0a                ,( Ptr{PLINT}, Ptr{PLINT}, Ptr{PLINT}, Ptr{PLFLT}, PLINT ) ),
+( :plscmap0n                ,( PLINT, ) ),
 # ( :plscmap1                 c_plscmap1
 # ( :plscmap1a                c_plscmap1a
 # ( :plscmap1l                c_plscmap1l
@@ -112,12 +114,12 @@ for (func, arg_types) in [
 # ( :plscmap1n                c_plscmap1n
 # ( :plscmap1_range           c_plscmap1_range
 # ( :plgcmap1_range           c_plgcmap1_range
-# ( :plscol0                  c_plscol0
-# ( :plscol0a                 c_plscol0a
-# ( :plscolbg                 c_plscolbg
-# ( :plscolbga                c_plscolbga
-# ( :plscolor                 c_plscolor
-# ( :plscompression           c_plscompression
+( :plscol0                  ,( PLINT, PLINT, PLINT, PLINT ) ),
+( :plscol0a                 ,( PLINT, PLINT, PLINT, PLINT, PLFLT ) ),
+( :plscolbg                 ,( PLINT, PLINT, PLINT ) ),
+( :plscolbga                ,( PLINT, PLINT, PLINT, PLFLT ) ),
+( :plscolor                 ,( PLINT, ) ),
+( :plscompression           ,( PLINT, ) ),
 ( :plsdev                   ,( PLSTR, ) ),
 # ( :plsdidev                 c_plsdidev
 # ( :plsdimap                 c_plsdimap
@@ -156,13 +158,13 @@ for (func, arg_types) in [
 ( :plstripa                 ,( PLINT, PLINT, PLFLT, PLFLT ) ),
 ( :plstripc                 ,( Ptr{PLINT}, Cstring, Cstring, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLINT, PLINT, PLINT, PLINT, Ptr{PLINT}, Ptr{PLINT}, Ptr{Cstring}, Cstring, Cstring, Cstring ) ),
 ( :plstripd                 ,( PLINT, ) ),
-# ( :plstyl                   c_plstyl
+( :plstyl                   ,( PLINT, Ptr{PLINT}, Ptr{PLINT} ) ),
 # ( :plsurf3d                 c_plsurf3d
 # ( :plsurf3dl                c_plsurf3dl
 # ( :plsvect                  c_plsvect
-# ( :plsvpa                   c_plsvpa
+( :plsvpa                   ,( PLFLT, PLFLT, PLFLT, PLFLT ) ),
 # ( :plsxax                   c_plsxax
-# ( :plsyax                   c_plsyax
+( :plsyax                   ,( PLINT, PLINT ) ),
 # ( :plsym                    c_plsym
 # ( :plszax                   c_plszax
 # ( :pltext                   c_pltext
@@ -170,11 +172,11 @@ for (func, arg_types) in [
 # ( :plvasp                   c_plvasp
 # ( :plvect                   c_plvect
 # ( :plvpas                   c_plvpas
-# ( :plvpor                   c_plvpor
+( :plvpor                   ,( PLFLT, PLFLT, PLFLT, PLFLT ) ),
 ( :plvsta                   ,() ),
 # ( :plw3d                    c_plw3d
-# ( :plwidth                  c_plwidth
-# ( :plwind                   c_plwind
+( :plwidth                  ,( PLFLT, ) ),
+( :plwind                   ,( PLFLT, PLFLT, PLFLT, PLFLT ) ),
 ( :plxormod                 ,( PLINT, Ptr{PLINT} ) )
 ]
     _arg_types = Expr(:tuple, [recurs_type(a) for a in arg_types]...)
@@ -184,17 +186,3 @@ for (func, arg_types) in [
         $(func)($(_args_in...)) = ccall( ($_fname, libplplot ), Void, $_arg_types, $(_args_in...) )
     end)
 end
-
-function verison()
-    pver = convert(Ptr{Cchar}, Libc.malloc(80))
-    plgver(convert(Cstring, pver))
-    ver = bytestring(pver)
-    Libc.free(pver)
-    return VersionNumber(ver)
-end
-
-function __init__()
-    global const libplplot = :libplplotd
-end
-
-end # module
