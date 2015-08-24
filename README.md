@@ -1,4 +1,4 @@
-# PLplot package for Julia [![Build Status](https://travis-ci.org/wildart/PLplot.jl.svg?branch=master)](https://travis-ci.org/wildart/PLplot.jl)
+# PLplot package for Julia
 
 [PLplot](http://plplot.sourceforge.net/) is a cross-platform software package for creating scientific plots.
 

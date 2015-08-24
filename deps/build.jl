@@ -12,8 +12,6 @@ shapelib_url = "http://download.osgeo.org/shapelib/$(shapelib_arc).zip"
 libshp = library_dependency("libshp")
 libplplot = library_dependency("libplplot")
 
-provides(AptGet, {"libshp1" => libshp})
-provides(AptGet, {"libplplot12" => libplplot})
 provides(Sources, URI(shapelib_url), libshp)
 provides(Sources, URI(plplot_url), libplplot)
 
