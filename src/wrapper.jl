@@ -174,7 +174,7 @@ for (func, arg_types) in [
 # ( :plvpas                   c_plvpas
 ( :plvpor                   ,( PLFLT, PLFLT, PLFLT, PLFLT ) ),
 ( :plvsta                   ,() ),
-# ( :plw3d                    c_plw3d
+( :plw3d                    ,( PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT ) ),
 ( :plwidth                  ,( PLFLT, ) ),
 ( :plwind                   ,( PLFLT, PLFLT, PLFLT, PLFLT ) ),
 ( :plxormod                 ,( PLINT, Ptr{PLINT} ) )
@@ -183,6 +183,6 @@ for (func, arg_types) in [
     _args_in = Any[ symbol(string('a',x)) for (x,t) in enumerate(arg_types) ]
     _fname = "c_"*string(func)
     eval(quote
-        $(func)($(_args_in...)) = ccall( ($_fname, libplplot ), Void, $_arg_types, $(_args_in...) )
+        $(func)($(_args_in...)) = ccall( ($_fname, $libplplot ), Void, $_arg_types, $(_args_in...) )
     end)
 end
