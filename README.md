@@ -14,7 +14,7 @@ julia> Pkg.build("PLplot")
 3. See `examples` directory for usage examples or [PLplot documentation](http://plplot.sourceforge.net/documentation.php)
 
 ## TODO
-- [ ] Wrap PLplot functions (117/174)
+- [x] Wrap PLplot functions
 - [ ] High-level plotting interface
 - [x] Binary installation
 - [ ] Documentation

@@ -1,10 +1,11 @@
-typealias PLINT Cint
-typealias PLFLT Cdouble
-typealias PLSTR Cstring
+typealias PLINT  Cint
+typealias PLUINT Cuint
+typealias PLFLT  Cdouble
+typealias PLSTR  Cstring
 
 recurs_type(dt::DataType) = dt <: Ptr ? Expr(:curly, :Ptr, recurs_type(dt.parameters[1])) : symbol(dt)
 
-for (func, arg_types) in [
+plfuncs = [
 ( :pl_setcontlabelformat    ,( PLINT, PLINT ) ),
 ( :pl_setcontlabelparam     ,( PLFLT, PLFLT, PLFLT, PLINT ) ),
 ( :pladv                    ,( PLINT, ) ),
@@ -19,9 +20,9 @@ for (func, arg_types) in [
 ( :plclear                  ,() ),
 ( :plcol0                   ,( PLINT, ) ),
 ( :plcol1                   ,( PLFLT, ) ),
-# ( :plcolorbar               c_plcolorbar
-# ( :plconfigtime             c_plconfigtime( PLFLT scale, PLFLT offset1, PLFLT offset2, PLINT ccontrol, PLINT ifbtime_offset, PLINT year, PLINT month, PLINT day, PLINT hour, PLINT min, PLFLT sec );
-# ( :plcont                   c_plcont( const PLFLT * const *f, PLINT nx, PLINT ny, PLINT kx, PLINT lx, PLINT ky, PLINT ly, const PLFLT *clevel, PLINT nlevel, Void ( *pltr )( PLFLT, PLFLT, PLFLT *, PLFLT *, PLPointer ), PLPointer pltr_data );
+( :plcolorbar               ,( Ptr{PLFLT}, Ptr{PLFLT}, PLINT, PLINT, PLFLT, PLFLT, PLFLT, PLFLT, PLINT, PLINT, PLINT, PLFLT, PLFLT, PLINT, PLFLT, PLINT, Ptr{PLINT}, Ptr{PLSTR}, PLINT, Ptr{PLSTR}, Ptr{PLFLT}, Ptr{PLINT}, Ptr{PLINT}, Ptr{Ptr{PLFLT}} ) ),
+( :plconfigtime             ,( PLFLT, PLFLT, PLFLT, PLINT, PLINT, PLINT, PLINT, PLINT, PLINT, PLINT, PLFLT ) ),
+( :plcont                   ,( Ptr{Ptr{PLFLT}}, PLINT, PLINT, PLINT, PLINT, PLINT, PLINT, Ptr{PLFLT}, PLINT, Ptr{Void}, Ptr{Void} ) ),
 ( :plcpstrm                 ,( PLINT, PLINT ) ),
 ( :plctime                  ,( PLINT, PLINT, PLINT, PLINT, PLINT, PLFLT, Ptr{PLFLT} ) ),
 ( :plend                    ,() ),
@@ -49,14 +50,14 @@ for (func, arg_types) in [
 ( :plgdiplt                 ,( Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLFLT} ) ),
 ( :plgdrawmode              ,() ),
 ( :plgfam                   ,( Ptr{PLINT}, Ptr{PLINT}, Ptr{PLINT} ) ),
-# ( :plgfci                   c_plgfci( PLUNICODE *p_fci );
+( :plgfci                   ,( Ptr{PLUINT} ) ),
 ( :plgfnam                  ,( PLSTR, ) ),
 ( :plgfont                  ,( Ptr{PLINT}, Ptr{PLINT}, Ptr{PLINT} ) ),
 ( :plglevel                 ,( Ptr{PLINT}, ) ),
 ( :plgpage                  ,( Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLINT}, Ptr{PLINT}, Ptr{PLINT}, Ptr{PLINT} ) ),
 ( :plgra                    ,() ),
 ( :plgradient               ,( PLINT, Ptr{PLFLT}, Ptr{PLFLT}, PLFLT ) ),
-# ( :plgriddata               c_plgriddata( const PLFLT *x, const PLFLT *y, const PLFLT *z, PLINT npts, const PLFLT *xg, PLINT nptsx, const PLFLT *yg, PLINT nptsy, PLFLT **zg, PLINT type, PLFLT data );
+( :plgriddata               ,( Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLFLT}, PLINT, Ptr{PLFLT}, PLINT, Ptr{PLFLT}, PLINT, Ptr{Ptr{PLFLT}}, PLINT, PLFLT ) ),
 ( :plgspa                   ,( Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLFLT} ) ),
 ( :plgstrm                  ,( Ptr{PLINT}, ) ),
 ( :plgver                   ,( PLSTR, ) ),
@@ -67,12 +68,12 @@ for (func, arg_types) in [
 ( :plgzax                   ,( Ptr{PLINT}, Ptr{PLINT} ) ),
 ( :plhist                   ,( PLINT, Ptr{PLFLT}, PLFLT, PLFLT, PLINT, PLINT) ),
 ( :plhlsrgb                 ,( PLFLT, PLFLT, PLFLT, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLFLT} ) ),
-# ( :plimage                  c_plimage
-# ( :plimagefr                c_plimagefr
+( :plimage                  ,( Ptr{Ptr{PLFLT}}, PLINT, PLINT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT ) ),
+( :plimagefr                ,( Ptr{Ptr{PLFLT}}, PLINT, PLINT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, Ptr{Void}, Ptr{Void} ) ),
 ( :plinit                   ,() ),
 ( :pljoin                   ,( PLFLT, PLFLT, PLFLT, PLFLT ) ),
 ( :pllab                    ,( PLSTR, PLSTR, PLSTR ) ),
-# ( :pllegend                 c_pllegend
+( :pllegend                 ,( Ptr{PLFLT}, Ptr{PLFLT}, PLINT, PLINT, PLFLT, PLFLT, PLFLT, PLINT, PLINT, PLINT, PLINT, PLINT, PLINT, Ptr{PLINT}, PLFLT, PLFLT, PLFLT, PLFLT, Ptr{PLINT}, Ptr{PLSTR}, Ptr{PLINT}, Ptr{PLINT}, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLINT}, Ptr{PLINT}, Ptr{PLFLT}, Ptr{PLINT}, Ptr{PLFLT}, Ptr{PLINT}, Ptr{PLSTR} ) ),
 ( :pllightsource            ,( PLFLT, PLFLT, PLFLT ) ),
 ( :plline                   ,( PLINT, Ptr{PLFLT}, Ptr{PLFLT} ) ),
 ( :plline3                  ,( PLINT, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLFLT} ) ),
@@ -82,16 +83,15 @@ for (func, arg_types) in [
 ( :plmapstring              ,( Ptr{Void}, PLSTR, PLSTR, PLFLT, PLFLT, PLFLT, PLFLT, Ptr{PLINT}, PLINT ) ),
 ( :plmaptex                 ,( Ptr{Void}, PLSTR, PLFLT, PLFLT, PLFLT, PLSTR, PLFLT, PLFLT, PLFLT, PLFLT, PLINT ) ),
 ( :plmapfill                ,( Ptr{Void}, PLSTR, PLFLT, PLFLT, PLFLT, PLFLT, Ptr{PLINT}, PLINT ) ),
-# ( :plmeridians              c_plmeridians
-# ( :plmesh                   c_plmesh( const PLFLT *x, const PLFLT *y, const PLFLT * const *z, PLINT nx, PLINT ny, PLINT opt );
-# ( :plmeshc                  c_plmeshc( const PLFLT *x, const PLFLT *y, const PLFLT * const *z, PLINT nx, PLINT ny, PLINT opt, const PLFLT *clevel, PLINT nlevel );
+( :plmeridians              ,( Ptr{Void}, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT ) ),
+( :plmesh                   ,( Ptr{PLFLT}, Ptr{PLFLT}, Ptr{Ptr{PLFLT}}, PLINT, PLINT, PLINT ) ),
+( :plmeshc                  ,( Ptr{PLFLT}, Ptr{PLFLT}, Ptr{Ptr{PLFLT}}, PLINT, PLINT, PLINT, Ptr{PLFLT}, PLINT) ),
 ( :plmkstrm                 ,( PLINT, ) ),
-( :plmtex                   ,( Cstring, PLFLT, PLFLT, PLFLT, Cstring ) ),
-( :plmtex3                  ,( Cstring, PLFLT, PLFLT, PLFLT, Cstring ) ),
-# ( :plot3d                   c_plot3d
-# ( :plot3dc                  c_plot3dc
-# ( :plot3dcl                 c_plot3dcl
-# ( :plparseopts              c_plparseopts( int *p_argc, const char **argv, PLINT mode );
+( :plmtex                   ,( PLSTR, PLFLT, PLFLT, PLFLT, PLSTR ) ),
+( :plmtex3                  ,( PLSTR, PLFLT, PLFLT, PLFLT, PLSTR ) ),
+( :plot3d                   ,( Ptr{PLFLT}, Ptr{PLFLT}, Ptr{Ptr{PLFLT}}, PLINT, PLINT, PLINT, PLINT ) ),
+( :plot3dc                  ,( Ptr{PLFLT}, Ptr{PLFLT}, Ptr{Ptr{PLFLT}}, PLINT, PLINT, PLINT, Ptr{PLFLT}, PLINT ) ),
+( :plot3dcl                 ,( Ptr{PLFLT}, Ptr{PLFLT}, Ptr{Ptr{PLFLT}}, PLINT, PLINT, PLINT, Ptr{PLFLT}, PLINT, PLINT, PLINT, Ptr{PLINT}, Ptr{PLINT} ) ),
 ( :plpat                    ,( PLINT, Ptr{PLINT}, Ptr{PLINT} ) ),
 ( :plpath                   ,( PLINT, PLFLT, PLFLT, PLFLT, PLFLT ) ),
 ( :plpoin                   ,( PLINT, Ptr{PLFLT}, Ptr{PLFLT}, PLINT ) ),
@@ -101,19 +101,18 @@ for (func, arg_types) in [
 ( :plpsty                   ,( PLINT, ) ),
 ( :plptex                   ,( PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLSTR ) ),
 ( :plptex3                  ,( PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLSTR ) ),
-# ( :plreplot                 c_plreplot
-# ( :plrgbhls                 c_plrgbhls
-# ( :plschr                   c_plschr
+( :plreplot                 ,() ),
+( :plschr                   ,( PLFLT, PLFLT ) ),
 ( :plscmap0                 ,( Ptr{PLINT}, Ptr{PLINT}, Ptr{PLINT}, PLINT ) ),
 ( :plscmap0a                ,( Ptr{PLINT}, Ptr{PLINT}, Ptr{PLINT}, Ptr{PLFLT}, PLINT ) ),
 ( :plscmap0n                ,( PLINT, ) ),
-# ( :plscmap1                 c_plscmap1
-# ( :plscmap1a                c_plscmap1a
-# ( :plscmap1l                c_plscmap1l
-# ( :plscmap1la               c_plscmap1la
-# ( :plscmap1n                c_plscmap1n
-# ( :plscmap1_range           c_plscmap1_range
-# ( :plgcmap1_range           c_plgcmap1_range
+( :plscmap1                 ,( Ptr{PLINT}, Ptr{PLINT}, Ptr{PLINT}, PLINT ) ),
+( :plscmap1a                ,( Ptr{PLINT}, Ptr{PLINT}, Ptr{PLINT}, Ptr{PLFLT}, PLINT ) ),
+( :plscmap1l                ,( PLINT, PLINT, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLINT} ) ),
+( :plscmap1la               ,( PLINT, PLINT, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLINT} ) ),
+( :plscmap1n                ,( PLINT, ) ),
+( :plscmap1_range           ,( PLFLT, PLFLT ) ),
+( :plgcmap1_range           ,( Ptr{PLFLT}, Ptr{PLFLT} ) ),
 ( :plscol0                  ,( PLINT, PLINT, PLINT, PLINT ) ),
 ( :plscol0a                 ,( PLINT, PLINT, PLINT, PLINT, PLFLT ) ),
 ( :plscolbg                 ,( PLINT, PLINT, PLINT ) ),
@@ -121,57 +120,56 @@ for (func, arg_types) in [
 ( :plscolor                 ,( PLINT, ) ),
 ( :plscompression           ,( PLINT, ) ),
 ( :plsdev                   ,( PLSTR, ) ),
-# ( :plsdidev                 c_plsdidev
-# ( :plsdimap                 c_plsdimap
-# ( :plsdiori                 c_plsdiori
-# ( :plsdiplt                 c_plsdiplt
-# ( :plsdiplz                 c_plsdiplz
-# ( :plseed                   c_plseed
-# ( :plsesc                   c_plsesc
-# ( :plsetopt                 c_plsetopt
-# ( :plsfam                   c_plsfam
-# ( :plsfci                   c_plsfci
-# ( :plsfnam                  c_plsfnam
-# ( :plsfont                  c_plsfont
-# ( :plshade                  c_plshade
-# ( :plshade1                 c_plshade1
-# ( :plshades                 c_plshades
-# ( :plslabelfunc             c_plslabelfunc
+( :plsdidev                 ,( PLFLT, PLFLT, PLFLT, PLFLT ) ),
+( :plsdimap                 ,( PLINT, PLINT, PLINT, PLINT, PLFLT, PLFLT ) ),
+( :plsdiori                 ,( PLFLT ) ),
+( :plsdiplt                 ,( PLFLT, PLFLT, PLFLT, PLFLT ) ),
+( :plsdiplz                 ,( PLFLT, PLFLT, PLFLT, PLFLT ) ),
+( :plsesc                   ,( Cchar ) ),
+( :plsetopt                 ,( PLSTR, PLSTR ) ),
+( :plsfam                   ,( PLINT, PLINT, PLINT ) ),
+( :plsfci                   ,( PLUINT ) ),
+( :plsfnam                  ,( PLSTR ) ),
+( :plsfont                  ,( PLINT, PLINT, PLINT ) ),
+( :plshade                  ,( Ptr{Ptr{PLFLT}}, PLINT, PLINT, Ptr{Void}, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLINT, PLFLT, PLFLT, PLINT, PLFLT, PLINT, PLFLT, Ptr{Void}, PLINT, Ptr{Void}, Ptr{Void} ) ),
+( :plshade1                 ,( Ptr{PLFLT}, PLINT, PLINT, Ptr{Void}, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLINT, PLFLT, PLFLT, PLINT, PLFLT, PLINT, PLFLT, Ptr{Void}, PLINT, Ptr{Void}, Ptr{Void} ) ),
+( :plshades                 ,( Ptr{Ptr{PLFLT}}, PLINT, PLINT, Ptr{Void}, PLFLT, PLFLT, PLFLT, PLFLT, Ptr{PLFLT}, PLINT, PLFLT, PLINT, PLFLT, Ptr{Void}, PLINT, Ptr{Void}, Ptr{Void} ) ),
+( :plsdrawmode              ,( PLINT, ) ),
+( :plslabelfunc             ,( Ptr{Void}, Ptr{Void} ) ),
 ( :plsmaj                   ,( PLFLT, PLFLT ) ),
 ( :plsmem                   ,( PLINT, PLINT, Ptr{Void} ) ),
 ( :plsmem                   ,( PLINT, PLINT, Ptr{Void} ) ),
 ( :plsmin                   ,( PLFLT, PLFLT ) ),
-( :plsdraode                ,( PLINT, ) ),
 ( :plsori                   ,( PLINT, ) ),
-# ( :plspage                  c_plspage
-# ( :plspal0                  c_plspal0
-# ( :plspal1                  c_plspal1
+( :plspage                  ,( PLFLT, PLFLT, PLINT, PLINT, PLINT, PLINT ) ),
+( :plspal0                  ,( PLSTR ) ),
+( :plspal1                  ,( PLSTR, PLINT ) ),
 ( :plspause                 ,( PLINT, ) ),
 ( :plsstrm                  ,( PLINT, ) ),
 ( :plssub                   ,( PLINT, PLINT ) ),
 ( :plssym                   ,( PLFLT, PLFLT ) ),
 ( :plstar                   ,( PLINT, PLINT ) ),
 ( :plstart                  ,( PLSTR, PLINT, PLINT ) ),
-# ( :plstransform             c_plstransform
+( :plstransform             ,( Ptr{Void}, Ptr{Void} ) ),
 ( :plstring                 ,( PLINT, Ptr{PLFLT}, Ptr{PLFLT}, PLSTR ) ),
 ( :plstring3                ,( PLINT, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLFLT}, PLSTR ) ),
 ( :plstripa                 ,( PLINT, PLINT, PLFLT, PLFLT ) ),
-( :plstripc                 ,( Ptr{PLINT}, Cstring, Cstring, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLINT, PLINT, PLINT, PLINT, Ptr{PLINT}, Ptr{PLINT}, Ptr{Cstring}, Cstring, Cstring, Cstring ) ),
+( :plstripc                 ,( Ptr{PLINT}, PLSTR, PLSTR, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLINT, PLINT, PLINT, PLINT, Ptr{PLINT}, Ptr{PLINT}, Ptr{PLSTR}, PLSTR, PLSTR, PLSTR ) ),
 ( :plstripd                 ,( PLINT, ) ),
 ( :plstyl                   ,( PLINT, Ptr{PLINT}, Ptr{PLINT} ) ),
-# ( :plsurf3d                 c_plsurf3d
-# ( :plsurf3dl                c_plsurf3dl
-# ( :plsvect                  c_plsvect
+( :plsurf3d                 ,( Ptr{PLFLT}, Ptr{PLFLT}, Ptr{Ptr{PLFLT}}, PLINT, PLINT, PLINT, Ptr{PLFLT}, PLINT ) ),
+( :plsurf3dl                ,( Ptr{PLFLT}, Ptr{PLFLT}, Ptr{Ptr{PLFLT}}, PLINT, PLINT, PLINT, Ptr{PLFLT}, PLINT, PLINT, PLINT, Ptr{PLINT}, Ptr{PLINT} ) ),
+( :plsvect                  ,( Ptr{PLFLT}, Ptr{PLFLT}, PLINT, PLINT ) ),
 ( :plsvpa                   ,( PLFLT, PLFLT, PLFLT, PLFLT ) ),
-# ( :plsxax                   c_plsxax
+( :plsxax                   ,( PLINT, PLINT ) ),
 ( :plsyax                   ,( PLINT, PLINT ) ),
-# ( :plsym                    c_plsym
-# ( :plszax                   c_plszax
-# ( :pltext                   c_pltext
-# ( :pltimefmt                c_pltimefmt
-# ( :plvasp                   c_plvasp
-# ( :plvect                   c_plvect
-# ( :plvpas                   c_plvpas
+( :plsym                    ,( PLINT, Ptr{PLFLT}, Ptr{PLFLT}, PLINT ) ),
+( :plszax                   ,( PLINT, PLINT ) ),
+( :pltext                   ,() ),
+( :pltimefmt                ,( PLSTR, ) ),
+( :plvasp                   ,( PLFLT, ) ),
+( :plvect                   ,( Ptr{Ptr{PLFLT}}, Ptr{Ptr{PLFLT}}, PLINT, PLINT, PLFLT, Ptr{Void}, Ptr{Void} ) ),
+( :plvpas                   ,( PLFLT, PLFLT, PLFLT, PLFLT, PLFLT ) ),
 ( :plvpor                   ,( PLFLT, PLFLT, PLFLT, PLFLT ) ),
 ( :plvsta                   ,() ),
 ( :plw3d                    ,( PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT ) ),
@@ -179,6 +177,8 @@ for (func, arg_types) in [
 ( :plwind                   ,( PLFLT, PLFLT, PLFLT, PLFLT ) ),
 ( :plxormod                 ,( PLINT, Ptr{PLINT} ) )
 ]
+
+for (func, arg_types) in plfuncs
     _arg_types = Expr(:tuple, [recurs_type(a) for a in arg_types]...)
     _args_in = Any[ symbol(string('a',x)) for (x,t) in enumerate(arg_types) ]
     _fname = "c_"*string(func)
