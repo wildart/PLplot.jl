@@ -11,10 +11,19 @@
 julia> Pkg.clone("https://github.com/wildart/PLplot.jl")
 julia> Pkg.build("PLplot")
 ```
-3. See `examples` directory for usage examples or [PLplot documentation](http://plplot.sourceforge.net/documentation.php)
+
+3. Plot some data
+```julia
+using PLplot
+plot(:xwin, rand(10), pch='⋄', typ=:overlay)
+```
+
+4. See `examples` directory for usage examples or [PLplot documentation](http://plplot.sourceforge.net/documentation.php)
+
 
 ## TODO
 - [x] Wrap PLplot functions
-- [ ] High-level plotting interface
+- [x] High-level `plot` function
+- [ ] More high-level plotting functions
 - [x] Binary installation
 - [ ] Documentation

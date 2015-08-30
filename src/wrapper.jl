@@ -50,7 +50,7 @@ plfuncs = [
 ( :plgdiplt                 ,( Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{PLFLT} ) ),
 ( :plgdrawmode              ,() ),
 ( :plgfam                   ,( Ptr{PLINT}, Ptr{PLINT}, Ptr{PLINT} ) ),
-( :plgfci                   ,( Ptr{PLUINT} ) ),
+( :plgfci                   ,( Ptr{PLUINT}, ) ),
 ( :plgfnam                  ,( PLSTR, ) ),
 ( :plgfont                  ,( Ptr{PLINT}, Ptr{PLINT}, Ptr{PLINT} ) ),
 ( :plglevel                 ,( Ptr{PLINT}, ) ),
@@ -122,14 +122,14 @@ plfuncs = [
 ( :plsdev                   ,( PLSTR, ) ),
 ( :plsdidev                 ,( PLFLT, PLFLT, PLFLT, PLFLT ) ),
 ( :plsdimap                 ,( PLINT, PLINT, PLINT, PLINT, PLFLT, PLFLT ) ),
-( :plsdiori                 ,( PLFLT ) ),
+( :plsdiori                 ,( PLFLT, ) ),
 ( :plsdiplt                 ,( PLFLT, PLFLT, PLFLT, PLFLT ) ),
 ( :plsdiplz                 ,( PLFLT, PLFLT, PLFLT, PLFLT ) ),
-( :plsesc                   ,( Cchar ) ),
+( :plsesc                   ,( Cchar, ) ),
 ( :plsetopt                 ,( PLSTR, PLSTR ) ),
 ( :plsfam                   ,( PLINT, PLINT, PLINT ) ),
-( :plsfci                   ,( PLUINT ) ),
-( :plsfnam                  ,( PLSTR ) ),
+( :plsfci                   ,( PLUINT, ) ),
+( :plsfnam                  ,( PLSTR, ) ),
 ( :plsfont                  ,( PLINT, PLINT, PLINT ) ),
 ( :plshade                  ,( Ptr{Ptr{PLFLT}}, PLINT, PLINT, Ptr{Void}, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLINT, PLFLT, PLFLT, PLINT, PLFLT, PLINT, PLFLT, Ptr{Void}, PLINT, Ptr{Void}, Ptr{Void} ) ),
 ( :plshade1                 ,( Ptr{PLFLT}, PLINT, PLINT, Ptr{Void}, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLINT, PLFLT, PLFLT, PLINT, PLFLT, PLINT, PLFLT, Ptr{Void}, PLINT, Ptr{Void}, Ptr{Void} ) ),
@@ -142,7 +142,7 @@ plfuncs = [
 ( :plsmin                   ,( PLFLT, PLFLT ) ),
 ( :plsori                   ,( PLINT, ) ),
 ( :plspage                  ,( PLFLT, PLFLT, PLINT, PLINT, PLINT, PLINT ) ),
-( :plspal0                  ,( PLSTR ) ),
+( :plspal0                  ,( PLSTR, ) ),
 ( :plspal1                  ,( PLSTR, PLINT ) ),
 ( :plspause                 ,( PLINT, ) ),
 ( :plsstrm                  ,( PLINT, ) ),
@@ -185,4 +185,26 @@ for (func, arg_types) in plfuncs
     eval(quote
         $(func)($(_args_in...)) = ccall( ($_fname, $libplplot ), Void, $_arg_types, $(_args_in...) )
     end)
+end
+
+function devices(ndevs = 30)
+    menustrs = fill(convert(Cstring, convert(Ptr{UInt8}, C_NULL)), ndevs)
+    devnames = fill(convert(Cstring, convert(Ptr{UInt8}, C_NULL)), ndevs)
+    p_ndev = Ref{Cint}(ndevs)
+    ccall((:plgDevs, libplplot ), Void,
+           (Ptr{Ptr{Cstring}}, Ptr{Ptr{Cstring}}, Ptr{Cint}),
+            Ref{Ptr{Cstring}}(pointer(menustrs)),
+            Ref{Ptr{Cstring}}(pointer(devnames)), p_ndev )
+    ndevs = p_ndev[]
+    devices = map(s->bytestring(s) |> symbol, devnames[1:ndevs])
+    devmenus = map(bytestring, menustrs[1:ndevs])
+    return Dict(zip(devices, devmenus))
+end
+
+function verison()
+    pver = convert(Ptr{Cchar}, Libc.malloc(80))
+    plgver(convert(Cstring, pver))
+    ver = bytestring(pver)
+    Libc.free(pver)
+    return VersionNumber(ver)
 end

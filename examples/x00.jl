@@ -15,8 +15,3 @@ pllab( "x", "y=100 x#u2#d", "Simple PLplot demo of a 2D line plot" )
 plline( length(x), x, y )
 #plspause(0)
 plend()
-
-
-
-
-
