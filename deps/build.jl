@@ -2,10 +2,9 @@ using BinDeps
 
 @BinDeps.setup
 
-version_sha1 = "2ee31ff9057de049ce98c3155a55f47bcb72ce01" # v"5.11.1"
-plplot_arc = "plplot-plplot-$version_sha1"
-plplot_url = "http://sourceforge.net/code-snapshots/git/p/pl/plplot/plplot.git/$(plplot_arc).zip"
-
+version = "5.11.1"
+plplot_arc = "plplot-$version"
+plplot_url = "http://skylineservers.dl.sourceforge.net/project/plplot/plplot/$(version)%20Source/plplot-$(version).tar.gz"
 shapelib_arc = "shapelib-1.3.0"
 shapelib_url = "http://download.osgeo.org/shapelib/$(shapelib_arc).zip"
 
