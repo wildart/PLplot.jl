@@ -96,7 +96,7 @@ function plot{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}; kvopts...)
 end
 
 function plot{T<:Real}(y::AbstractVector{T}; kvopts...)
-    x = collect(linspace(1, length(y), length(y)))
+    x = linspace(1, length(y), length(y))
     plot(x, y; kvopts...)
 end
 
@@ -141,7 +141,7 @@ Example:
 """
 function plot{T<:Real}(y::AbstractMatrix{T}; kvopts...)
     npts = size(y,1)
-    x = collect(linspace(1, npts, npts))
+    x = linspace(1, npts, npts)
     plot(x, y; kvopts...)
 end
 
