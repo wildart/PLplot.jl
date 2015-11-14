@@ -1,0 +1,50 @@
+diff -rupN plplot/drivers/cairo.c plplot-c/drivers/cairo.c
+--- plplot/drivers/cairo.c	2015-11-14 03:35:45.957494819 -0500
++++ plplot-c/drivers/cairo.c	2015-11-14 03:37:23.133495623 -0500
+@@ -387,6 +387,7 @@ void plD_bop_cairo( PLStream *pls )
+     PLCairo *aStream;
+ 
+     aStream = (PLCairo *) pls->dev;
++    pls->page++;
+ 
+     // Some Cairo devices support delayed device setup (eg: xcairo with
+     // external drawable and extcairo with an external context).
+diff -rupN plplot/include/plplot.h plplot-c/include/plplot.h
+--- plplot/include/plplot.h	2015-11-14 03:35:45.957494819 -0500
++++ plplot-c/include/plplot.h	2015-11-14 03:37:23.133495623 -0500
+@@ -781,7 +781,7 @@ typedef struct
+ #define    plwidth                  c_plwidth
+ #define    plwind                   c_plwind
+ #define    plxormod                 c_plxormod
+-
++#define    plgpcnt                 c_plgpcnt
+ #endif  // __PLSTUBS_H__
+ 
+ #endif  // BRAINDEAD
+@@ -2384,6 +2384,8 @@ c_plrgb1( PLINT r, PLINT g, PLINT b );
+ 
+ #endif // PL_DEPRECATED
+ 
++PLDLLIMPEXP void
++c_plgpcnt( PLINT *p_pcnt );
+ 
+ #ifdef __cplusplus
+ }
+diff -rupN plplot/src/plcore.c plplot-c/src/plcore.c
+--- plplot/src/plcore.c	2015-11-14 03:35:45.961494819 -0500
++++ plplot-c/src/plcore.c	2015-11-14 03:37:23.137495624 -0500
+@@ -3999,6 +3999,14 @@ c_plfamadv( void )
+     plsc->famadv = 1;
+ }
+ 
++// Page count
++
++void
++c_plgpcnt( PLINT *p_pcnt )
++{
++    *p_pcnt  = plsc->page;
++}
++
+ //--------------------------------------------------------------------------
+ //  Interface routines for axis labling parameters.
+ //  See pldtik.c for more info.
