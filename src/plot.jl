@@ -49,7 +49,7 @@ Example:
 ```
 """
 
-function plot{T}(x::Vector{T}, y::Vector{T}; kvopts...)
+function plot{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}; kvopts...)
     @assert length(x) == length(y) "Number of point should be equal for each axis"
 
     xmin, xmax = extrema(x)
@@ -92,14 +92,15 @@ function plot{T}(x::Vector{T}, y::Vector{T}; kvopts...)
     # plot points
     (ptype == :point || ptype == :overlay) && scatter(x, y, hc)
     (ptype == :line  || ptype == :overlay) && lines(x, y)
+    return
 end
 
-function plot{T}(y::Vector{T}; kvopts...)
+function plot{T<:Real}(y::AbstractVector{T}; kvopts...)
     x = collect(linspace(1, length(y), length(y)))
     plot(x, y; kvopts...)
 end
 
-function plot{T}(x::Vector{T}, y::Matrix{T}; kvopts...)
+function plot{T<:Real}(x::AbstractVector{T}, y::AbstractMatrix{T}; kvopts...)
     opts = Dict(kvopts)
     nplots = size(y,2)
 
@@ -138,7 +139,7 @@ Example:
     end
 ```
 """
-function plot{T}(y::Matrix{T}; kvopts...)
+function plot{T<:Real}(y::AbstractMatrix{T}; kvopts...)
     npts = size(y,1)
     x = collect(linspace(1, npts, npts))
     plot(x, y; kvopts...)

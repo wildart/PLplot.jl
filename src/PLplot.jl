@@ -3,7 +3,7 @@ module PLplot
     export draw, plot, points, lines, labels
 
     # Link dependency
-    depsfile = joinpath(dirname(@__FILE__),"..","deps","deps.jl")
+    depsfile = normpath(dirname(@__FILE__),"..","deps","deps.jl")
     if isfile(depsfile)
         include(depsfile)
     else
@@ -12,6 +12,7 @@ module PLplot
 
     include("wrapper.jl")
     include("plot.jl")
+    include("utils.jl")
 
     # try
     #     require(:Gadfly)
@@ -95,24 +96,24 @@ module PLplot
 
     Integer code range: [0,31]
     """
-    function scatter(x::Vector{Float64}, y::Vector{Float64}, g::Int32)
+    function scatter{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}, g::Int32=Int32(23))
         @assert length(x) == length(y) "Number of point should be equal for each axis"
-        plpoin(length(x), x, y, g)
+        plpoin(length(x), collect(x), collect(y), g)
     end
 
     """Plot points with a specified glyph as character.
 
     Available glyphs: '⚪','◯','⊙','⭒','⊕','+','×','□','*','✠','⋅','∙','✶','⋄','✽','∘','▵','▪','⋆','⚬','▢','▴','◦','⌑','▫'
     """
-    function scatter(x::Vector{Float64}, y::Vector{Float64}, g::Char)
+    function scatter{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}, g::Char)
         hc =  get(hershey, g, Int32(23))
-        points(x, y, hc)
+        scatter(x, y, hc)
     end
 
     """Draws line defined by in x and y. """
-    function lines(x::Vector{Float64}, y::Vector{Float64})
+    function lines{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T})
         @assert length(x) == length(y) "Number of point should be equal for each axis"
-        plline(length(x), x, y)
+        plline(length(x), collect(x), collect(y))
     end
 
     """Simple routine to write labels for plot title, X and Y axes."""

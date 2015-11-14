@@ -175,7 +175,8 @@ plfuncs = [
 ( :plw3d                    ,( PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT, PLFLT ) ),
 ( :plwidth                  ,( PLFLT, ) ),
 ( :plwind                   ,( PLFLT, PLFLT, PLFLT, PLFLT ) ),
-( :plxormod                 ,( PLINT, Ptr{PLINT} ) )
+( :plxormod                 ,( PLINT, Ptr{PLINT} ) ),
+( :plgpcnt                  ,( Ptr{PLINT}, ) )
 ]
 
 for (func, arg_types) in plfuncs
