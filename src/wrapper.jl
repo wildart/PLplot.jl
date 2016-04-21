@@ -179,14 +179,15 @@ plfuncs = [
 ( :plgpcnt                  ,( Ptr{PLINT}, ) )
 ]
 
+blk = quote end
 for (func, arg_types) in plfuncs
     _arg_types = Expr(:tuple, [recurs_type(a) for a in arg_types]...)
     _args_in = Any[ symbol(string('a',x)) for (x,t) in enumerate(arg_types) ]
     _fname = "c_"*string(func)
-    eval(quote
-        $(func)($(_args_in...)) = ccall( ($_fname, $libplplot ), Void, $_arg_types, $(_args_in...) )
-    end)
+    push!(blk.args, :($(func)($(_args_in...)) = ccall( ($_fname, $libplplot ), Void, $_arg_types, $(_args_in...) )) )
+    push!(blk.args, nothing)
 end
+eval(blk)
 
 function devices(ndevs = 30)
     menustrs = fill(convert(Cstring, convert(Ptr{UInt8}, C_NULL)), ndevs)

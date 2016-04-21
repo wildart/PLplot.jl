@@ -1,4 +1,3 @@
-
 """ Get page parameters
 
 DESCRIPTION:
@@ -45,4 +44,63 @@ function pageparams!(; xdpi=-1., ydpi=-1., xlen=-1, ylen=-1, xoff=-1, yoff=-1)
     yoff < 0. && (yoff = params[:yoff])
 
     PLplot.plspage(xdpi, ydpi, xlen, ylen, xoff, yoff)
+end
+
+"""Set color map0 colors by 8-bit RGB values
+"""
+function setcolormap(rgbcm::Array{Int32,2}, bgc=Int32[], fgc=Int32[]; index=0)
+    if length(bgc) == 3
+        rgbcm[1,:] = bgc
+    end
+    if length(fgc) == 3
+        rgbcm[2,:] = fgc
+    end
+    setcolormap(rgbcm[:,1], rgbcm[:,2], rgbcm[:,3], index)
+end
+
+function setcolormap(R::Vector{Int32}, G::Vector{Int32}, B::Vector{Int32}, index=0)
+    @assert length(R) > 0 "Number of colors must be positive"
+    @assert length(R) == length(G) == length(B) "Number of colors must be the same for each channel"
+    if index == 0
+        PLplot.plscmap0(R, G, B, Int32(length(R)))
+    else
+        PLplot.plscmap1(R, G, B, Int32(length(R)))
+    end
+end
+
+"""Get current subpage parameters
+
+DESCRIPTION:
+
+   Gets the size of the current subpage in millimeters measured from
+   the bottom left hand corner of the output device page or screen.
+"""
+function getsubpage()
+    p_xmin=Ref{Cdouble}(0)
+    p_xmax=Ref{Cdouble}(0)
+    p_ymin=Ref{Cdouble}(0)
+    p_ymax=Ref{Cdouble}(0)
+
+    PLplot.plgspa(p_xmin, p_xmax, p_ymin, p_ymax)
+    return Dict(:xmin=>p_xmin[], :xmax=>p_xmax[], :ymin=>p_ymin[], :ymax=>p_ymax[])
+end
+
+"""Get viewport limits
+
+Parameter values:
+- :norm, in normalized device coordinates
+- :world, in world coordinates
+"""
+function getviewport(ptype::Symbol=:norm)
+    p_xmin=Ref{Cdouble}(0)
+    p_xmax=Ref{Cdouble}(0)
+    p_ymin=Ref{Cdouble}(0)
+    p_ymax=Ref{Cdouble}(0)
+
+    if ptype == :norm
+        PLplot.plgvpd(p_xmin, p_xmax, p_ymin, p_ymax)
+    else
+        PLplot.plgvpw(p_xmin, p_xmax, p_ymin, p_ymax)
+    end
+    return Dict(:xmin=>p_xmin[], :xmax=>p_xmax[], :ymin=>p_ymin[], :ymax=>p_ymax[])
 end

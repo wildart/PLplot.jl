@@ -59,10 +59,22 @@ function plot{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}; kvopts...)
     opts = Dict(kvopts)
     axis_scale = get(opts, :axis_scale, Independent)
     axis_box   = get(opts, :axis_box, Default)
+    txspec, tyspec = AxisBoxParams[Int32(axis_box)]
     xmin       = get(opts, :xmin, xmin)
     xmax       = get(opts, :xmax, xmax)
     ymin       = get(opts, :ymin, ymin)
     ymax       = get(opts, :ymax, ymax)
+    xspec      = get(opts, :xspec, txspec)
+    xmajorint  = get(opts, :xmajorint, 0.0)
+    xminornum  = get(opts, :xminornum, 0)
+    yspec      = get(opts, :yspec, tyspec)
+    ymajorint  = get(opts, :ymajorint, 0.0)
+    yminornum  = get(opts, :yminornum, 0)
+    xyratio    = get(opts, :xyratio, 0.0)
+    xminvp     = get(opts, :xminvp, 0.18)
+    xmaxvp     = get(opts, :xmaxvp, 0.88)
+    yminvp     = get(opts, :yminvp, 0.15)
+    ymaxvp     = get(opts, :ymaxvp, 0.85)
     ptype      = get(opts, :typ, :point)
     color      = Int32(get(opts, :col, 1))
 
@@ -87,7 +99,21 @@ function plot{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}; kvopts...)
     plcol0(color)
 
     # setup environment
-    get(opts, :env, true) && plenv(xmin, xmax, ymin, ymax, Int32(axis_scale), Int32(axis_box))
+    if get(opts, :env, true)
+        plenv(xmin, xmax, ymin, ymax, Int32(axis_scale), Int32(axis_box))
+    else
+        # advance page
+        pladv(0)
+
+        # set world coordinates of viewport boundaries
+        plvpas( xminvp, xmaxvp, yminvp, ymaxvp, xyratio )
+
+        # set world coordinates of viewport boundaries
+        plwind( xmin, xmax, ymin, ymax )
+
+        # set box parameters
+        length(xspec)>0 && length(yspec)>0 && plbox(xspec, xmajorint, xminornum, yspec, ymajorint, yminornum)
+    end
 
     # plot points
     (ptype == :point || ptype == :overlay) && scatter(x, y, hc)

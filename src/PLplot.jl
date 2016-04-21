@@ -1,3 +1,5 @@
+__precompile__()
+
 module PLplot
 
     export draw, plot, points, lines, labels
@@ -63,6 +65,53 @@ module PLplot
                      CustomOriginMajorTick       = 72,
                      CustomOriginMajorMinorTick  = 73)
 
+    const AxisBoxParams = Dict(
+        zip(
+            map(Int32, instances(PLplot.AxisBox)),
+            [
+                ("", "")
+                ("bc", "bc")
+                ("bcnst", "bcnstv")
+                ("abcnst", "abcnstv")
+                ("abcgnst", "abcgnstv")
+                ("abcgnsth", "abcgnstvh")
+                ("bclnst", "bcnstv")
+                ("abclnst", "abcnstv")
+                ("abcglnst", "abcgnstv")
+                ("abcglnsth", "abcgnstvh")
+                ("abclnst", "abcnstv")
+                ("bcnst", "bclnstv")
+                ("abcnst", "abclnstv")
+                ("abcgnst", "abcglnstv")
+                ("abcgnsth", "abcglnstvh")
+                ("bclnst", "bclnstv")
+                ("abclnst", "abclnstv")
+                ("abcglnst", "abcglnstv")
+                ("abcglnsth", "abcglnstvh")
+                ("bcdnst", "bcnstv")
+                ("abcdnst", "abcnstv")
+                ("abcgdnst", "abcgnstv")
+                ("abcgdnsth", "abcgnstvh")
+
+                ("bcnst", "bcdnstv")
+                ("abcnst", "abcdnstv")
+                ("abcgnst", "abcgdnstv")
+                ("abcgnsth", "abcgdnstvh")
+
+                ("bcdnst", "bcdnstv")
+                ("abcdnst", "abcdnstv")
+                ("abcgdnst", "abcgdnstv")
+                ("abcgdnsth", "abcgdnstvh")
+
+                ("bcnost", "bcnostv")
+                ("abcnost", "abcnostv")
+                ("abcgnost", "abcgnostv")
+                ("abcgnosth", "abcgnostvh")
+            ]
+        )
+    )
+
+
     """Open driver for drawing.
 
     Keyword parameters:
@@ -119,15 +168,6 @@ module PLplot
     """Simple routine to write labels for plot title, X and Y axes."""
     function labels(xaxis::AbstractString, yaxis::AbstractString, title::AbstractString)
        pllab( bytestring(xaxis), bytestring(yaxis), bytestring(title))
-    end
-
-    function getviewport()
-        xmin = Ref{Float64}(0.)
-        ymin = Ref{Float64}(0.)
-        xmax = Ref{Float64}(0.)
-        ymax = Ref{Float64}(0.)
-        plgvpw(xmin, ymin, xmax, ymax)
-        return (xmin[], xmax[], ymin[], ymax[])
     end
 
 end # module
