@@ -77,6 +77,7 @@ function plot{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}; kvopts...)
     ymaxvp     = get(opts, :ymaxvp, 0.85)
     ptype      = get(opts, :typ, :point)
     color      = Int32(get(opts, :col, 1))
+    overlay    = get(opts, :overlay, false)
 
     hc = Int32(23)
     if :pch in keys(opts)
@@ -88,36 +89,30 @@ function plot{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}; kvopts...)
         end
     end
 
-    if :col in keys(opts)
-        hc = if isa(val, Char)
-            get(hershey, val, hc)
-        elseif isa(val, Integer)
-            Int32(val)
-        end
-    end
-
     plcol0(color)
 
     # setup environment
-    if get(opts, :env, true)
-        plenv(xmin, xmax, ymin, ymax, Int32(axis_scale), Int32(axis_box))
-    else
-        # advance page
-        pladv(0)
+    if !overlay
+        if get(opts, :env, true)
+            plenv(xmin, xmax, ymin, ymax, Int32(axis_scale), Int32(axis_box))
+        else
+            # advance page
+            pladv(0)
 
-        # set world coordinates of viewport boundaries
-        plvpas( xminvp, xmaxvp, yminvp, ymaxvp, xyratio )
+            # set world coordinates of viewport boundaries
+            plvpas( xminvp, xmaxvp, yminvp, ymaxvp, xyratio )
 
-        # set world coordinates of viewport boundaries
-        plwind( xmin, xmax, ymin, ymax )
+            # set world coordinates of viewport boundaries
+            plwind( xmin, xmax, ymin, ymax )
 
-        # set box parameters
-        length(xspec)>0 && length(yspec)>0 && plbox(xspec, xmajorint, xminornum, yspec, ymajorint, yminornum)
+            # set box parameters
+            length(xspec)>0 && length(yspec)>0 && plbox(xspec, xmajorint, xminornum, yspec, ymajorint, yminornum)
+        end
     end
 
     # plot points
-    (ptype == :point || ptype == :overlay) && scatter(x, y, hc)
-    (ptype == :line  || ptype == :overlay) && lines(x, y)
+    ptype == :point && scatter(x, y, hc)
+    ptype == :line  && lines(x, y)
     return
 end
 
@@ -153,7 +148,7 @@ function plot{T<:Real}(x::AbstractVector{T}, y::AbstractMatrix{T}; kvopts...)
     for i in 1:nplots
         plot(x, y[:,i]; col=colors[i], pch=glyphs[i],
              xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
-             env=(i==1), pkvopts...)
+             overlay=(i!=1), pkvopts...)
     end
 end
 
@@ -161,7 +156,7 @@ end
 Example:
 ```
     draw(:xwin) do opts
-       plot(rand(10,3), pch=['⋄','⊕','▴'] , typ=:overlay)
+       plot(rand(10,3), pch=['⋄','⊕','▴'])
     end
 ```
 """
