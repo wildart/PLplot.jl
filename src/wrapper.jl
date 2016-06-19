@@ -3,7 +3,7 @@ typealias PLUINT Cuint
 typealias PLFLT  Cdouble
 typealias PLSTR  Cstring
 
-recurs_type(dt::DataType) = dt <: Ptr ? Expr(:curly, :Ptr, recurs_type(dt.parameters[1])) : symbol(dt)
+recurs_type(dt::DataType) = dt <: Ptr ? Expr(:curly, :Ptr, recurs_type(dt.parameters[1])) : Symbol(dt)
 
 plfuncs = [
 ( :pl_setcontlabelformat    ,( PLINT, PLINT ) ),
@@ -138,7 +138,6 @@ plfuncs = [
 ( :plslabelfunc             ,( Ptr{Void}, Ptr{Void} ) ),
 ( :plsmaj                   ,( PLFLT, PLFLT ) ),
 ( :plsmem                   ,( PLINT, PLINT, Ptr{Void} ) ),
-( :plsmem                   ,( PLINT, PLINT, Ptr{Void} ) ),
 ( :plsmin                   ,( PLFLT, PLFLT ) ),
 ( :plsori                   ,( PLINT, ) ),
 ( :plspage                  ,( PLFLT, PLFLT, PLINT, PLINT, PLINT, PLINT ) ),
@@ -182,7 +181,7 @@ plfuncs = [
 blk = quote end
 for (func, arg_types) in plfuncs
     _arg_types = Expr(:tuple, [recurs_type(a) for a in arg_types]...)
-    _args_in = Any[ symbol(string('a',x)) for (x,t) in enumerate(arg_types) ]
+    _args_in = Any[ Symbol(string('a',x)) for (x,t) in enumerate(arg_types) ]
     _fname = "c_"*string(func)
     push!(blk.args, :($(func)($(_args_in...)) = ccall( ($_fname, $libplplot ), Void, $_arg_types, $(_args_in...) )) )
     push!(blk.args, nothing)
@@ -198,15 +197,40 @@ function devices(ndevs = 30)
             Ref{Ptr{Cstring}}(pointer(menustrs)),
             Ref{Ptr{Cstring}}(pointer(devnames)), p_ndev )
     ndevs = p_ndev[]
-    devices = map(s->bytestring(s) |> symbol, devnames[1:ndevs])
-    devmenus = map(bytestring, menustrs[1:ndevs])
+    devices = map(s->Symbol(unsafe_string(s)), devnames[1:ndevs])
+    devmenus = map(unsafe_string, menustrs[1:ndevs])
     return Dict(zip(devices, devmenus))
 end
 
 function verison()
     pver = convert(Ptr{Cchar}, Libc.malloc(80))
     plgver(convert(Cstring, pver))
-    ver = bytestring(pver)
+    ver = unsafe_string(pver)
     Libc.free(pver)
     return VersionNumber(ver)
 end
+
+
+@enum(PL_POSITION, POSITION_LEFT     = Cint(0x01),
+                   POSITION_RIGHT    = Cint(0x02),
+                   POSITION_TOP      = Cint(0x04),
+                   POSITION_BOTTOM   = Cint(0x08),
+                   POSITION_INSIDE   = Cint(0x10),
+                   POSITION_OUTSIDE  = Cint(0x20),
+                   POSITION_VIEWPORT = Cint(0x40),
+                   POSITION_SUBPAGE  = Cint(0x80))
+
+"""Flags used for position argument of both legend and colorbar"""
+PL_POSITION
+
+@enum(PL_LEGEND,LEGEND_NONE         = Cint(0x01),
+                LEGEND_COLOR_BOX    = Cint(0x02),
+                LEGEND_LINE         = Cint(0x04),
+                LEGEND_SYMBOL       = Cint(0x08),
+                LEGEND_TEXT_LEFT    = Cint(0x10),
+                LEGEND_BACKGROUND   = Cint(0x20),
+                LEGEND_BOUNDING_BOX = Cint(0x40),
+                LEGEND_ROW_MAJOR    = Cint(0x80))
+
+"""Flags used for legend parameters"""
+PL_LEGEND

@@ -1,8 +1,8 @@
-__precompile__()
+# __precompile__()
 
 module PLplot
 
-    export draw, plot, points, lines, labels
+    export draw, plot, points, lines, labels, legend
 
     # Link dependency
     depsfile = normpath(dirname(@__FILE__),"..","deps","deps.jl")
@@ -111,6 +111,17 @@ module PLplot
         )
     )
 
+    const ViewPortText = Dict(
+        :bottom   => "b",
+        :bottom90 => "bv",
+        :left     => "l",
+        :left90   => "lv",
+        :right    => "r",
+        :right90  => "rv",
+        :top      => "l",
+        :top90    => "lv"
+    )
+
 
     """Open driver for drawing.
 
@@ -166,8 +177,8 @@ module PLplot
     end
 
     """Simple routine to write labels for plot title, X and Y axes."""
-    function labels(xaxis::AbstractString, yaxis::AbstractString, title::AbstractString)
-       pllab( bytestring(xaxis), bytestring(yaxis), bytestring(title))
+    function labels(xaxis::String, yaxis::String, title::String)
+       pllab(xaxis, yaxis, title)
     end
 
 end # module
