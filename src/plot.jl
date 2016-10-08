@@ -76,8 +76,10 @@ function plot{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}; kvopts...)
     yminvp     = get(opts, :yminvp, 0.15)
     ymaxvp     = get(opts, :ymaxvp, 0.85)
     ptype      = get(opts, :typ, :point)
-    color      = Int32(get(opts, :col, 1))
+    boxcolor   = Int32(get(opts, :boxcol, 1))
+    datacolor  = Int32(get(opts, :col, 1))
     overlay    = get(opts, :overlay, false)
+    pen        = get(opts, :pen, 1.)
 
     hc = Int32(23)
     if :pch in keys(opts)
@@ -89,10 +91,10 @@ function plot{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}; kvopts...)
         end
     end
 
-    plcol0(color)
-
     # setup environment
     if !overlay
+        plcol0(boxcolor)
+
         if get(opts, :env, true)
             plenv(xmin, xmax, ymin, ymax, Int32(axis_scale), Int32(axis_box))
         else
@@ -110,9 +112,14 @@ function plot{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}; kvopts...)
         end
     end
 
+    plcol0(datacolor)
+    pen != 1.0 && plwidth(pen) # set pen widths if available
+
     # plot points
     ptype == :point && scatter(x, y, hc)
     ptype == :line  && lines(x, y)
+
+    pen != 1.0 && plwidth(1.) # reset pen widths
     return
 end
 
@@ -124,13 +131,48 @@ end
 function plot{T<:Real}(x::AbstractVector{T}, y::AbstractMatrix{T}; kvopts...)
     opts = Dict(kvopts)
     nplots = size(y,2)
+    kopts = keys(opts)
+
+    colors = if :col in kopts
+        col = pop!(opts, :col)
+        @assert length(col) == nplots "Number of colors should correspond to number of graphs"
+        col
+    else
+        skip = :boxcol in kopts ? opts[:boxcol] : 0
+        colorindexes(nplots, skip)
+    end
+
+    glyphs = if :pch in keys(opts)
+        pch = pop!(opts, :pch)
+        @assert length(pch) == nplots "Number of point glyphs should correspond to number of graphs"
+        pch
+    else
+        colorindexes(nplots)
+    end
+
+    xmin, xmax = extrema(x)
+    ymin, ymax = extrema(y)
+
+    pkvopts = [(k,v) for (k,v) in opts]
+    for i in 1:nplots
+        plot(x, y[:,i]; col=colors[i], pch=glyphs[i],
+             xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
+             overlay=(i!=1), pkvopts...)
+    end
+end
+
+function plot{T<:Real}(x::AbstractMatrix{T}, y::AbstractMatrix{T}; kvopts...)
+    opts = Dict(kvopts)
+    nplots = size(y,2)
+
+    @assert size(x) == size(y) "Number of points should be the same for both dimensions"
 
     colors = if :col in keys(opts)
         col = pop!(opts, :col)
         @assert length(col) == nplots "Number of colors should correspond to number of graphs"
-        pch
+        col
     else
-        [i%15+1 for i in 0:nplots]
+        colorindexes(nplots)
     end
 
     glyphs = if :pch in keys(opts)
@@ -146,7 +188,7 @@ function plot{T<:Real}(x::AbstractVector{T}, y::AbstractMatrix{T}; kvopts...)
 
     pkvopts = [(k,v) for (k,v) in opts]
     for i in 1:nplots
-        plot(x, y[:,i]; col=colors[i], pch=glyphs[i],
+        plot(x[:,i], y[:,i]; col=colors[i], pch=glyphs[i],
              xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
              overlay=(i!=1), pkvopts...)
     end

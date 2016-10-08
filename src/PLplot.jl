@@ -14,6 +14,7 @@ module PLplot
 
     include("wrapper.jl")
     include("plot.jl")
+    include("hist.jl")
     include("utils.jl")
 
     # try
@@ -71,23 +72,27 @@ module PLplot
             [
                 ("", "")
                 ("bc", "bc")
+
                 ("bcnst", "bcnstv")
                 ("abcnst", "abcnstv")
                 ("abcgnst", "abcgnstv")
                 ("abcgnsth", "abcgnstvh")
+
                 ("bclnst", "bcnstv")
                 ("abclnst", "abcnstv")
                 ("abcglnst", "abcgnstv")
                 ("abcglnsth", "abcgnstvh")
-                ("abclnst", "abcnstv")
+
                 ("bcnst", "bclnstv")
                 ("abcnst", "abclnstv")
                 ("abcgnst", "abcglnstv")
                 ("abcgnsth", "abcglnstvh")
+
                 ("bclnst", "bclnstv")
                 ("abclnst", "abclnstv")
                 ("abcglnst", "abcglnstv")
                 ("abcglnsth", "abcglnstvh")
+
                 ("bcdnst", "bcnstv")
                 ("abcdnst", "abcnstv")
                 ("abcgdnst", "abcgnstv")
@@ -139,7 +144,7 @@ module PLplot
 
         # set file name
         if driver ∉ [:xwin, :xcairo]
-            fname = bytestring(get(opts ,:filename, "output"))
+            fname = string(get(opts ,:filename, "output"))
             plsfnam(fname)
         end
 
@@ -179,6 +184,21 @@ module PLplot
     """Simple routine to write labels for plot title, X and Y axes."""
     function labels(xaxis::String, yaxis::String, title::String)
        pllab(xaxis, yaxis, title)
+    end
+
+    """ Writes text at a specified position relative to the viewport boundaries.
+
+        Text may be written inside or outside the viewport, but is clipped at
+        the subpage boundaries. The reference point of a string lies along
+        a line passing through the string at half the height of a capital letter.
+
+        The position of the reference point along this line is determined by *just*,
+        and the position of the reference point relative to the viewport is set
+        by *disp* and *pos* .
+    """
+    function label(lbl::String, side::Symbol, disp::PLFLT=1., pos::PLFLT=0.5, just::PLFLT=0.5)
+       @assert haskey(ViewPortText, side) "Unknow symbol $side to specify lable position"
+       plmtex(ViewPortText[side], disp, pos, just, lbl)
     end
 
 end # module

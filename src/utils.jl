@@ -115,12 +115,15 @@ function legend(desc::Vector{String};
                 bg_color::Cint=Cint(0), bb_color::Cint=Cint(1), bb_style::Cint=Cint(1),
                 nrow::Cint=Cint(0), ncolumn::Cint=Cint(0),
                 text_offset::Cdouble=1.0, text_scale::Cdouble=1.0,
-                text_spacing::Cdouble=2.0, text_justification::Cdouble=1.0
+                text_spacing::Cdouble=2.0, text_justification::Cdouble=1.0,
+                text_colors::Vector{Cint} = Cint[]
                 )
 
     nlegend = Cint(length(desc))
     opt_array   = fill(Cint(PLplot.LEGEND_LINE), nlegend)
-    text_colors = [Cint(i%15+1) for i in 0:nlegend]
+    if length(text_colors) == 0
+        text_colors = colorindexes(nlegend)
+    end
     text = [convert(Cstring, pointer(desc[i])) for i in 1:nlegend]
     box_colors = Ptr{Cint}(C_NULL)
     box_patterns = Ptr{Cint}(C_NULL)
@@ -129,7 +132,7 @@ function legend(desc::Vector{String};
     line_colors = text_colors
     line_styles = [Cint(1) for i in 0:nlegend]
     line_widths = [Cdouble(1.0) for i in 0:nlegend]
-    symbol_colors = Ptr{Cint}(C_NULL)
+    symbol_colors = text_colors
     symbol_scales = Ptr{Cdouble}(C_NULL)
     symbol_numbers = Ptr{Cint}(C_NULL)
     symbols = Ptr{Cstring}(C_NULL)
@@ -154,4 +157,19 @@ end
 function label(side::Symbol, text::String,
                disp::PLFLT=3.0, pos::PLFLT=0.5, just::PLFLT=0.5)
     plmtex(ViewPortText[side], disp, pos, just, text)
+end
+
+
+"""Create circular color index (with possibility to skip one color)"""
+function colorindexes(n, skip=0)
+    i = 0
+    idxs = Cint[]
+    while length(idxs) < n
+        ci = i%16
+        if !(ci == skip || ci == 0)
+            push!(idxs, ci)
+        end
+        i+=1
+    end
+    return idxs
 end
