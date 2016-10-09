@@ -1,30 +1,26 @@
-const hershey = Dict(
-    '▫' => Int32(0),  # smwhtsquare
-    '⋅'  => Int32(1),  # cdot
-    '+'  => Int32(2),
-    '*'  => Int32(3),
-    '✶'  => Int32(3),  # varstar
-    '∘'  => Int32(4),  # circ
-    '×'  => Int32(5),  # times
-    '▢' => Int32(6),  # squoval
-    '▵'  => Int32(7),  # vartriangle
-    '⊕' => Int32(8),  # oplus
-    '⊙' => Int32(9),  # odot
-    '⌑' => Int32(10),  # sqlozenge
-    '⋄'  => Int32(11), # diamond
-    '⋆'  => Int32(12), # star
-    '▴'  => Int32(13), # blacktriangle
-    '✠' => Int32(14), # maltese
-    '✽' => Int32(15), # dingasterisk
-    '▪' => Int32(16), # smblksquare
-    '∙' => Int32(17), # vysmblkcircle
-    '⭒' => Int32(18), # smwhitestar
-    '□' => Int32(19), # square
-    '◦' => Int32(20), # smwhtcircle
-    '⚬' => Int32(21), # mdsmwhtcircle
-    '⚪' => Int32(22), # mdwhtcircle
-    '◯' => Int32(23), # lgwhtcircle
-)
+"""Plot points with a specified glyph using its integer code.
+
+Integer code range: [0,31]
+"""
+function scatter{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}, g::Int32=Int32(23))
+    @assert length(x) == length(y) "Number of point should be equal for each axis"
+    plpoin(length(x), collect(x), collect(y), g)
+end
+
+"""Plot points with a specified glyph as character.
+
+Available glyphs: '⚪','◯','⊙','⭒','⊕','+','×','□','*','✠','⋅','∙','✶','⋄','✽','∘','▵','▪','⋆','⚬','▢','▴','◦','⌑','▫'
+"""
+function scatter{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}, g::Char)
+    hc =  get(Hershey, g, Int32(23))
+    scatter(x, y, hc)
+end
+
+"""Draws line defined by in x and y. """
+function lines{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T})
+    @assert length(x) == length(y) "Number of point should be equal for each axis"
+    plline(length(x), collect(x), collect(y))
+end
 
 """Generic X-Y Plotting. Accepts the coordinates of points in the plot.
 
@@ -48,7 +44,6 @@ Example:
     end
 ```
 """
-
 function plot{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}; kvopts...)
     @assert length(x) == length(y) "Number of point should be equal for each axis"
 
@@ -85,7 +80,7 @@ function plot{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}; kvopts...)
     if :pch in keys(opts)
         val = opts[:pch]
         hc = if isa(val, Char)
-            get(hershey, val, hc)
+            get(Hershey, val, hc)
         elseif isa(val, Integer)
             Int32(val)
         end
@@ -194,7 +189,7 @@ function plot{T<:Real}(x::AbstractMatrix{T}, y::AbstractMatrix{T}; kvopts...)
     end
 end
 
-"""Plot multiple graphs from matrix columns.
+"""Plot multiple overlaying graphs from matrix columns.
 Example:
 ```
     draw(:xwin) do opts
