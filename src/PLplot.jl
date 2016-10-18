@@ -2,7 +2,7 @@
 
 module PLplot
 
-    export draw, plot, points, lines, labels, legend
+    export draw, plot, scatter, lines, labels, legend, plot3, scatter3, lines3
 
     # Link dependency
     depsfile = normpath(dirname(@__FILE__),"..","deps","deps.jl")
@@ -14,6 +14,7 @@ module PLplot
 
     include("wrapper.jl")
     include("plot.jl")
+    include("plot3d.jl")
     include("hist.jl")
     include("utils.jl")
     include("ijulia.jl")
@@ -128,6 +129,45 @@ module PLplot
         :top90    => "lv"
     )
 
+    const Hershey = Dict(
+        '▫' => Int32(0),  # smwhtsquare
+        '⋅'  => Int32(1),  # cdot
+        '+'  => Int32(2),
+        '*'  => Int32(3),
+        '✶'  => Int32(3),  # varstar
+        '∘'  => Int32(4),  # circ
+        '×'  => Int32(5),  # times
+        '▢' => Int32(6),  # squoval
+        '▵'  => Int32(7),  # vartriangle
+        '⊕' => Int32(8),  # oplus
+        '⊙' => Int32(9),  # odot
+        '⌑' => Int32(10),  # sqlozenge
+        '⋄'  => Int32(11), # diamond
+        '⋆'  => Int32(12), # star
+        '▴'  => Int32(13), # blacktriangle
+        '✠' => Int32(14), # maltese
+        '✽' => Int32(15), # dingasterisk
+        '▪' => Int32(16), # smblksquare
+        '∙' => Int32(17), # vysmblkcircle
+        '⭒' => Int32(18), # smwhitestar
+        '□' => Int32(19), # square
+        '◦' => Int32(20), # smwhtcircle
+        '⚬' => Int32(21), # mdsmwhtcircle
+        '⚪' => Int32(22), # mdwhtcircle
+        '◯' => Int32(23), # lgwhtcircle
+    )
+
+    @enum(Opt3D,DRAW_LINEX = Cint(0x001), # draw lines parallel to the X axis   
+                DRAW_LINEY = Cint(0x002), # draw lines parallel to the Y axis
+                DRAW_LINEXY= Cint(0x003), # draw lines parallel to both the X and Y axis
+                MAG_COLOR  = Cint(0x004), # draw the mesh with a color dependent of the magnitude
+                BASE_CONT  = Cint(0x008), # draw contour plot at bottom xy plane
+                TOP_CONT   = Cint(0x010), # draw contour plot at top xy plane
+                SURF_CONT  = Cint(0x020), # draw contour plot at surface
+                DRAW_SIDES = Cint(0x040), # draw sides
+                FACETED    = Cint(0x080), # draw outline for each square that makes up the surface
+                MESH       = Cint(0x100) # draw mesh
+    )
 
     """Open driver for drawing.
 
@@ -178,50 +218,6 @@ module PLplot
             rm(fname)
             return res
         end
-    end
-
-    """Plot points with a specified glyph using its integer code.
-
-    Integer code range: [0,31]
-    """
-    function scatter{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}, g::Int32=Int32(23))
-        @assert length(x) == length(y) "Number of point should be equal for each axis"
-        plpoin(length(x), collect(x), collect(y), g)
-    end
-
-    """Plot points with a specified glyph as character.
-
-    Available glyphs: '⚪','◯','⊙','⭒','⊕','+','×','□','*','✠','⋅','∙','✶','⋄','✽','∘','▵','▪','⋆','⚬','▢','▴','◦','⌑','▫'
-    """
-    function scatter{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}, g::Char)
-        hc =  get(hershey, g, Int32(23))
-        scatter(x, y, hc)
-    end
-
-    """Draws line defined by in x and y. """
-    function lines{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T})
-        @assert length(x) == length(y) "Number of point should be equal for each axis"
-        plline(length(x), collect(x), collect(y))
-    end
-
-    """Simple routine to write labels for plot title, X and Y axes."""
-    function labels(xaxis::String, yaxis::String, title::String)
-       pllab(xaxis, yaxis, title)
-    end
-
-    """ Writes text at a specified position relative to the viewport boundaries.
-
-        Text may be written inside or outside the viewport, but is clipped at
-        the subpage boundaries. The reference point of a string lies along
-        a line passing through the string at half the height of a capital letter.
-
-        The position of the reference point along this line is determined by *just*,
-        and the position of the reference point relative to the viewport is set
-        by *disp* and *pos* .
-    """
-    function label(lbl::String, side::Symbol, disp::PLFLT=1., pos::PLFLT=0.5, just::PLFLT=0.5)
-       @assert haskey(ViewPortText, side) "Unknow symbol $side to specify lable position"
-       plmtex(ViewPortText[side], disp, pos, just, lbl)
     end
 
 end # module

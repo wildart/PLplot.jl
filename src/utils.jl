@@ -1,3 +1,34 @@
+"""PLplot Graphics Input structure
+"""
+immutable GraphicsInput
+    etype::Cint   # type of of event (CURRENTLY UNUSED)
+    state::Cuint  # key or button mask
+    keysym::Cuint # key selected
+    button::Cuint # mouse button selected
+    subwindow::PLplot.PLINT # subwindow (alias subpage, alias subplot) number
+    translated::NTuple{16,Cchar} # translated string
+    pX::Cint # absolute device coordinates of pointer
+    pY::Cint
+    dX::PLplot.PLFLT  # relative device coordinates of pointer
+    dY::PLplot.PLFLT
+    wX::PLplot.PLFLT  # world coordinates of pointer
+    wY::PLplot.PLFLT
+
+    GraphicsInput() = new(zero(Cint), zero(Cuint), zero(Cuint), zero(Cuint), zero(PLplot.PLINT),
+                         ntuple(x->zero(Cchar),16), zero(Cint), zero(Cint),
+                         zero(PLplot.PLFLT), zero(PLplot.PLFLT), zero(PLplot.PLFLT), zero(PLplot.PLFLT))
+end
+
+"""Wait for graphics input event and translate to world coordinates.
+
+   Returns `GraphicsInput` structure
+"""
+function getcursor()
+    input = Ref{GraphicsInput}()
+    res = ccall((:plGetCursor, libplplot), Cint, (Ref{GraphicsInput},), input)
+    return input[]
+end
+
 """ Get page parameters
 
 DESCRIPTION:
@@ -153,12 +184,26 @@ function legend(desc::Vector{String};
     return (plw[], plh[])
 end
 
-"""Write text relative to viewport boundaries"""
-function label(side::Symbol, text::String,
-               disp::PLFLT=3.0, pos::PLFLT=0.5, just::PLFLT=0.5)
-    plmtex(ViewPortText[side], disp, pos, just, text)
+"""Simple routine to write labels for plot title, X and Y axes."""
+function labels(xaxis::String, yaxis::String, title::String)
+    pllab(xaxis, yaxis, title)
 end
 
+""" Writes text at a specified position relative to the viewport boundaries.
+
+    Text may be written inside or outside the viewport, but is clipped at
+    the subpage boundaries. The reference point of a string lies along
+    a line passing through the string at half the height of a capital letter.
+
+    The position of the reference point along this line is determined by *just*,
+    and the position of the reference point relative to the viewport is set
+    by *disp* and *pos* .
+"""
+function label(lbl::String, side::Symbol,
+               disp::PLFLT=1., pos::PLFLT=0.5, just::PLFLT=0.5)
+    @assert haskey(ViewPortText, side) "Unknow symbol $side to specify lable position"
+    plmtex(ViewPortText[side], disp, pos, just, lbl)
+end
 
 """Create circular color index (with possibility to skip one color)"""
 function colorindexes(n, skip=0)
