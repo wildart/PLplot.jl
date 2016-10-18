@@ -16,6 +16,7 @@ module PLplot
     include("plot.jl")
     include("hist.jl")
     include("utils.jl")
+    include("ijulia.jl")
 
     # try
     #     require(:Gadfly)
@@ -142,9 +143,15 @@ module PLplot
         # set device
         plsdev(string(driver))
 
+        isinline = get(opts ,:inline, false)
+
         # set file name
         if driver ∉ [:xwin, :xcairo]
-            fname = string(get(opts ,:filename, "output"))
+            if driver ∈ [:svg, :svgcairo, :svgqt, :pngcairo, :pngqt] && isinline
+                fname = tempname()
+            else
+                fname = string(get(opts ,:filename, "output"))
+            end
             plsfnam(fname)
         end
 
@@ -154,6 +161,22 @@ module PLplot
             plotting(kvopts)
         finally
             plend()
+        end
+
+        if !isinline
+            return nothing
+        else
+            io = open(fname)
+            res = if driver ∈ [:svg, :svgcairo, :svgqt]
+                SVG(read(io))
+            elseif driver ∈ [:pngcairo, :pngqt]
+                PNG(read(io))
+            else
+                nothing
+            end
+            close(io)
+            rm(fname)
+            return res
         end
     end
 
