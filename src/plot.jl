@@ -213,5 +213,4 @@ function plot(drv::Symbol, opts...; kvopts...)
     draw(drv; kvopts...) do dopts
         plot(opts...; dopts...)
     end
-    return
 end
