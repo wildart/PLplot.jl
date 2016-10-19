@@ -19,8 +19,18 @@ module PLplot
     include("utils.jl")
     include("ijulia.jl")
 
+    global THEME
+    THEME = try
+        eval(:(import Colors))
+        include("themes.jl")
+        gadfly_theme() # default theme
+    catch er
+        show(er)
+        nothing
+    end
+
     # try
-    #     require(:Gadfly)
+    #     eval(:(import Gadfly))
     #     include("gadfly.jl")
     # catch
     #     global PLP
@@ -194,6 +204,12 @@ module PLplot
             end
             plsfnam(fname)
         end
+
+        # parse color theme parameter
+        cmap = theme!(get(opts ,:theme, nothing))
+
+        # set colormap
+        cmap !== nothing && PLplot.setcolormap(cmap, index=0)
 
         # initialize plotting
         plinit()
