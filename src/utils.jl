@@ -218,3 +218,9 @@ function colorindexes(n, skip=0)
     end
     return idxs
 end
+
+# Conversion rules for options
+Base.:|(a::PL_POSITION, b::PL_POSITION) = |(Cint(a), Cint(b))
+Base.:|(a::Cint, b::PL_POSITION) = |(a, Cint(b))
+Base.:|(a::PL_LEGEND, b::PL_LEGEND) = |(Cint(a), Cint(b))
+Base.:|(a::Cint, b::PL_LEGEND) = |(a, Cint(b))
