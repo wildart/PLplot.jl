@@ -167,7 +167,7 @@ module PLplot
         '◯' => Int32(23), # lgwhtcircle
     )
 
-    @enum(Opt3D,DRAW_LINEX = Cint(0x001), # draw lines parallel to the X axis   
+    @enum(Opt3D,DRAW_LINEX = Cint(0x001), # draw lines parallel to the X axis
                 DRAW_LINEY = Cint(0x002), # draw lines parallel to the Y axis
                 DRAW_LINEXY= Cint(0x003), # draw lines parallel to both the X and Y axis
                 MAG_COLOR  = Cint(0x004), # draw the mesh with a color dependent of the magnitude
@@ -183,27 +183,43 @@ module PLplot
 
     Keyword parameters:
 
-    - 'filename': Set file name for a output driver
+    - 'filename': Set file name for a output device
     """
-    function draw(plotting::Function, driver::Symbol=:xwin; kvopts...)
-        @assert driver in keys(devices()) "Driver $driver is not supported"
+    function draw(plotting::Function, device::Symbol=:xwin; kvopts...)
+        @assert device in keys(devices()) "Driver `$device` is not supported"
 
         opts = Dict(kvopts)
 
         # set device
-        plsdev(string(driver))
+        plsdev(string(device))
+        viewer = device ∈ [:xwin, :xcairo, :wingcc, :tkwin, :tk, :wxwidgets]
+        ijulia = device ∈ [:svg, :svgcairo, :svgqt, :pngcairo, :pngqt]
 
+        # read parameters
         isinline = get(opts ,:inline, false)
+        width = get(opts ,:width, default_graphic_width)
+        height = get(opts ,:height, default_graphic_height)
+
+        # set image size
+        pageparams!(xlen=width, ylen=height)
 
         # set file name
-        if driver ∉ [:xwin, :xcairo]
-            if driver ∈ [:svg, :svgcairo, :svgqt, :pngcairo, :pngqt] && isinline
-                fname = tempname()
+        fname = Nullable{String}(
+            if viewer
+                nothing
+            elseif haskey(opts, :file)
+                ijulia = false # disable inline plotting if filename is provided
+                string(opts[:file])
+            elseif ijulia
+                tempname()
             else
-                fname = string(get(opts ,:filename, "output"))
+                warn("`file` parameter is not specified for `$device` device. Output will be saved to `default.plot`")
+                "default.plot"
             end
-            plsfnam(fname)
-        end
+        )
+
+        # Set file name
+        !isnull(fname) && plsfnam(get(fname))
 
         # parse color theme parameter
         cmap = theme!(get(opts ,:theme, nothing))
@@ -219,21 +235,39 @@ module PLplot
             plend()
         end
 
-        if !isinline
-            return nothing
-        else
-            io = open(fname)
-            res = if driver ∈ [:svg, :svgcairo, :svgqt]
+        # if file is not specified, thus no inline possible, then exit
+        isnull(fname) && return nothing
+
+        # if inline flag set load image as byte array
+        if ijulia
+            io = open(get(fname), "r")
+            res = if device ∈ [:svg, :svgcairo, :svgqt]
                 SVG(read(io))
-            elseif driver ∈ [:pngcairo, :pngqt]
+            elseif device ∈ [:pngcairo, :pngqt]
                 PNG(read(io))
             else
                 nothing
             end
             close(io)
-            rm(fname)
+            rm(get(fname)) # remove temporary file
+
             return res
         end
+
+        return nothing
     end
+
+    default_graphic_height = 378
+    default_graphic_width = round(Int, default_graphic_height*sqrt(2))
+
+    """Set default plot size in pixels"""
+    function set_default_plot_size(width::Int, height::Int)
+        global default_graphic_width
+        global default_graphic_height
+        default_graphic_width = width
+        default_graphic_height = height
+        nothing
+    end
+
 
 end # module
