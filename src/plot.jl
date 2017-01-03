@@ -75,6 +75,9 @@ function plot{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}; kvopts...)
     datacolor  = Int32(get(opts, :col, 1))
     overlay    = get(opts, :overlay, false)
     pen        = get(opts, :pen, 1.)
+    xtitle     = get(opts, :xlab, "")
+    ytitle     = get(opts, :ylab, "")
+    title      = get(opts, :title, "")
 
     hc = Int32(23)
     if :pch in keys(opts)
@@ -113,6 +116,8 @@ function plot{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}; kvopts...)
     # plot points
     ptype == :point && scatter(x, y, hc)
     ptype == :line  && lines(x, y)
+
+    !all(isempty, [title, xtitle, ytitle]) && labels(xtitle, ytitle, title)
 
     pen != 1.0 && plwidth(1.) # reset pen widths
     return

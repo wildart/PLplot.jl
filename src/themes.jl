@@ -47,3 +47,20 @@ function theme!(thm = :Default)
 
     return THEME
 end
+
+function fillpattern!(pat::Symbol = :Solid; inclination = [450], spacing = [1000])
+    if pat == :Solid
+        plpsty(0)
+    elseif pat == :Straight
+        plpsty(1)
+    elseif pat == :Angle
+        plpsty(3)
+    elseif pat == :Custom
+        @assert 1 <= length(inclination) <= 2 "Cannot set more less than 1 and more than 2 patterns"
+        @assert length(inclination) == length(spacing)
+        plpat(length(inclination), convert(Vector{PLINT}, inclination),  convert(Vector{PLINT}, spacing))
+    else
+        plpsty(0)
+    end
+end
+
