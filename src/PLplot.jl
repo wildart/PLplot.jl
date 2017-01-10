@@ -2,7 +2,7 @@
 
 module PLplot
 
-    export draw, plot, scatter, lines, labels, legend, plot3, scatter3, lines3
+    export draw, plot, scatter, lines, legend, plot3, scatter3, lines3, boxplot, histogram
 
     # Link dependency
     depsfile = normpath(dirname(@__FILE__),"..","deps","deps.jl")
@@ -16,6 +16,7 @@ module PLplot
     include("plot.jl")
     include("plot3d.jl")
     include("hist.jl")
+    include("boxplot.jl")
     include("utils.jl")
     include("ijulia.jl")
 
