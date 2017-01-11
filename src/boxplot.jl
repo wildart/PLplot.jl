@@ -1,38 +1,98 @@
-function qstats(data::Vector)
-    l = length(data)
-    ml, mr, m = if isodd(l)
-        mdl = (l >> 1) + 1
-        m = data[mdl]*1.
-        l == 1 ? mdl : mdl-1, l == 1 ? mdl : mdl+1, m
+"""Quartile calcululations from 'Simple Implementatons of the Boxplot' by Frigge, Hoaglin & Iglewicz
+
+   quartiles(X::Vector; def::Symbol=:waverage)
+
+Calcualte quartiles for array `X` using  definition specified by parameter `def`.
+
+|   `def`  |Definition|
+|----------|----------|
+|:average  |Weigted Average Amed at x_((n+1)/4), #4|
+|:empirical|EDF with Averaging, #5|
+|:tukey    |Standard Forths or Hinges (Tukey), #6|
+|:ideal    |Ideal or Machine Forths, #7|
+|:clevelend|Weigted Average Amed at x_(n/4+0.5), #8|
+"""
+function quartiles{T<:Real}(data::Vector{T}; quartile=:waverage)
+    n = length(data)
+
+    # calculate lower and upper fourths
+    q1, q3 = if n == 1
+        [data[1], data[1]]
+    elseif quartile == :tukey || quartile == :hinges
+        qi = ((n+3)>>1)*0.5
+        j = floor(qi)
+        g = qi - j
+        d = convert(Int, j)
+        [(1.0-g)*data[d]+g*data[d+1], (1.0-g)*data[n+1-d]+g*data[n+2-d]]
+    elseif quartile == :ideal
+        qi = n/4. + 5./12.
+        j = floor(qi)
+        g = qi - j
+        d = convert(Int, j)
+        [(1.0-g)*data[d]+g*data[d+1], (1.0-g)*data[n+1-d]+g*data[n+2-d]]
     else
-        mdl = l >> 1
-        m = (data[mdl] + data[mdl+1])/2.
-        mdl, mdl+1, m
+        Q = Float64[]
+        for p in [0.25, 0.75]
+            q = if quartile == :average # (n+1)*p = j + g
+                qi = (n+1)*p
+                j = floor(qi)
+                g = qi - j
+                d = convert(Int, j)
+                (1.0-g)*data[d]+g*data[d+1]
+            elseif quartile == :empirical
+                qi = n*p
+                j = floor(qi)
+                d = convert(Int, j)
+                if qi - j > 0.
+                    data[d+1]
+                else
+                    (data[d] + data[d+1])/2.
+                end
+            elseif quartile == :clevelend # n*p + 1/2 = j + g
+                qi = n*p + 0.5
+                j = floor(qi)
+                g = qi - j
+                d = convert(Int, j)
+                (1.0-g)*data[d]+g*data[d+1]
+            end
+            push!(Q, q)
+        end
+        Q
     end
 
-    return median(data[1:ml]), m, median(data[mr:end])
+    # calculate median
+    q2 = if isodd(n)
+        mdl = (n >> 1) + 1
+        data[mdl]*1.
+    else
+        mdl = n >> 1
+        (data[mdl] + data[mdl+1])/2.
+    end
+
+    return q1, q2, q3
 end
 
-function boxparams(data::Vector; minmax = false)
-    q1, q2, q3 = qstats(data)
 
-    lfence, hfence = if minmax
+function fences(data::Vector; quartile=:average, k=1.5)
+    q1, q2, q3 = quartiles(data, quartile = quartile)
+
+    lfence, hfence = if isinf(k)
         lfence, hfence = extrema(data)
         lfence, hfence
     else
         IQR = q3-q1
-        lfence = q1 - 1.5IQR
-        hfence = q3 + 1.5IQR
+        lfence = q1 - k*IQR
+        hfence = q3 + k*IQR
         lfence, hfence
     end
 
     return lfence, q1, q2, q3, hfence
 end
 
-function boxplot{T<:Real}(data::Dict{T, Vector{T}}; minmax=false, boxwidth=0.8)
+function boxplot{T<:Real}(data::Dict{T, Vector{T}}; quartile=:average, k=1.5, boxwidth=0.8)
 
     x = convert(Vector{PLFLT}, sort!(collect(keys(data))))
-    y = [boxparams(sort(data[k]), minmax=minmax) for k in x]
+    y = [fences(sort(data[i]), quartile=quartile, k=k) for i in x]
 
     # Get plot dimension parameters
 
