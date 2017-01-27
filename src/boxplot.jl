@@ -89,22 +89,23 @@ function fences(data::Vector; quartile=:average, k=1.5)
     return lfence, q1, q2, q3, hfence
 end
 
-function boxplot{T<:Real}(data::Dict{T, Vector{T}}; quartile=:average, k=1.5, boxwidth=0.8)
+function boxplot(lbls::Vector, data::Vector{Vector{PLFLT}}; quartile=:average, k=1.5, width=0.8)
+    @assert length(lbls) == length(data) "Dimension of labels and data arrays should be of the same size"
 
-    x = convert(Vector{PLFLT}, sort!(collect(keys(data))))
-    y = [fences(sort(data[i]), quartile=quartile, k=k) for i in x]
+    xs = convert(Vector{PLFLT}, lbls)
+    ys = [fences(sort(data[i]), quartile=quartile, k=k) for i in 1:length(data)]
 
     # Get plot dimension parameters
 
-    xmin, xmax = extrema(x)
-    xw = (xmax-xmin)/(length(x)-1)
+    xmin, xmax = extrema(xs)
+    xw = (xmax-xmin)/(length(xs)-1)
     xmin -= xw
     xmax += xw
 
-    ymin = minimum(map(e->e[1], y))
-    ymax = maximum(map(e->e[5], y))
+    ymin = minimum(map(e->e[1], ys))
+    ymax = maximum(map(e->e[5], ys))
 
-    exy = [extrema(v) for (k,v) in data]
+    exy = map(extrema, data)
     ydmin = mapreduce(z->z[1], min, exy)
     ydmax = mapreduce(z->z[2], max, exy)
     ymin = min(ymin, ydmin)
@@ -117,8 +118,8 @@ function boxplot{T<:Real}(data::Dict{T, Vector{T}}; quartile=:average, k=1.5, bo
     # Setup environment
     plenv(xmin, xmax, ymin, ymax, Int32(Independent), Int32(Default))
 
-    hbw = xw*boxwidth/2.
-    for (b,(wl, bl, med, bh, wh)) in zip(x,y)
+    hbw = xw*width/2.
+    for (i,(b,(wl, bl, med, bh, wh))) in enumerate(zip(xs,ys))
         # Box
         x0 = PLFLT[b-hbw, b+hbw, b+hbw, b-hbw, b-hbw]
         y0 = PLFLT[bl, bl, bh, bh, bl]
@@ -141,9 +142,21 @@ function boxplot{T<:Real}(data::Dict{T, Vector{T}}; quartile=:average, k=1.5, bo
         plwidth(1.)
 
         # Outliers
-        outl = filter(z->(z<wl || z > wh), data[b])
+        outl = filter(z->(z<wl || z > wh), data[i])
         length(outl) > 0 && plpoin(length(outl), fill(b, length(outl)), outl, Int32(20))
 
         b+=1.
     end
+end
+
+function boxplot{T<:Real}(dct::Dict{T, Vector{T}}; quartile=:average, k=1.5, width=0.8)
+    xs = sort!(collect(keys(dct)))
+    ys = [convert(Vector{PLFLT}, dct[x]) for x in xs]
+    boxplot(xs, ys, quartile=quartile, k=k, width=width)
+end
+
+function boxplot{T<:Real}(data::Matrix{T}; quartile=:average, k=1.5, width=0.8)
+    xs = collect(1:size(data,2))
+    ys = [convert(Vector{PLFLT}, data[:,i]) for i in 1:size(data,2)]
+    boxplot(xs, ys, quartile=quartile, k=k, width=width)
 end
