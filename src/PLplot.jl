@@ -186,14 +186,14 @@ module PLplot
 
     - 'filename': Set file name for a output device
     """
-    function draw(plotting::Function, device::Symbol=:xwin; kvopts...)
+    function draw(plotting::Function, device::Symbol=default_graphic_device; kvopts...)
         @assert device in keys(devices()) "Driver `$device` is not supported"
 
         opts = Dict(kvopts)
 
         # set device
         plsdev(string(device))
-        viewer = device ∈ [:xwin, :xcairo, :wingcc, :tkwin, :tk, :wxwidgets]
+        viewer = device ∈ [:xwin, :xcairo, :wingcc, :wincairo, :tkwin, :tk, :wxwidgets]
         ijulia = device ∈ [:svg, :svgcairo, :svgqt, :pngcairo, :pngqt]
 
         # read parameters
@@ -259,7 +259,8 @@ module PLplot
     end
 
     default_graphic_height = 378
-    default_graphic_width = round(Int, default_graphic_height*sqrt(2))
+    default_graphic_width = round(Int, default_graphic_height*(1.+sqrt(5.))/2.)
+    default_graphic_device = :xwin
 
     """Set default plot size in pixels"""
     function set_default_plot_size(width::Int, height::Int)
@@ -270,5 +271,24 @@ module PLplot
         nothing
     end
 
+    """Set default graphic device"""
+    function set_default_device(device::Symbol)
+        global default_graphic_device
+        devs = devices()
+        if haskey(devs, device)
+           default_graphic_device = device
+        else
+            error("No such device: $device")
+        end
+        nothing
+    end
+
+    function __init__()
+        global default_graphic_device
+        if is_windows()
+           default_graphic_device = :wincairo
+           plsetopt("libdir", dirname(libplplot))
+        end
+    end
 
 end # module
