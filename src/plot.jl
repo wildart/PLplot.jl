@@ -80,6 +80,7 @@ function plot{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}; kvopts...)
     title      = get(opts, :title, "")
 
     hc = Int32(23)
+    drawpoints = false
     if :pch in keys(opts)
         val = opts[:pch]
         hc = if isa(val, Char)
@@ -87,6 +88,7 @@ function plot{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}; kvopts...)
         elseif isa(val, Integer)
             Int32(val)
         end
+        drawpoints = true
     end
 
     # setup environment
@@ -114,7 +116,7 @@ function plot{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}; kvopts...)
     pen != 1.0 && plwidth(pen) # set pen widths if available
 
     # plot points
-    ptype == :point && scatter(x, y, hc)
+    (ptype == :point || drawpoints) && scatter(x, y, hc)
     ptype == :line  && lines(x, y)
 
     !all(isempty, [title, xtitle, ytitle]) && labels(xtitle, ytitle, title)
@@ -128,9 +130,9 @@ function plot{T<:Real}(y::AbstractVector{T}; kvopts...)
     plot(x, y; kvopts...)
 end
 
-function plot{T<:Real}(x::AbstractVector{T}, y::AbstractMatrix{T}; kvopts...)
+function plot{T<:Real}(x::AbstractVector{T}, ys::AbstractMatrix{T}; kvopts...)
     opts = Dict(kvopts)
-    nplots = size(y,2)
+    nplots = size(ys,2)
     kopts = keys(opts)
 
     colors = if :col in kopts
@@ -151,21 +153,21 @@ function plot{T<:Real}(x::AbstractVector{T}, y::AbstractMatrix{T}; kvopts...)
     end
 
     xmin, xmax = extrema(x)
-    ymin, ymax = extrema(y)
+    ymin, ymax = extrema(ys)
 
     pkvopts = [(k,v) for (k,v) in opts]
     for i in 1:nplots
-        plot(x, y[:,i]; col=colors[i], pch=glyphs[i],
+        plot(x, ys[:,i]; col=colors[i], pch=glyphs[i],
              xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
              overlay=(i!=1), pkvopts...)
     end
 end
 
-function plot{T<:Real}(x::AbstractMatrix{T}, y::AbstractMatrix{T}; kvopts...)
+function plot{T<:Real}(xs::AbstractMatrix{T}, ys::AbstractMatrix{T}; kvopts...)
     opts = Dict(kvopts)
-    nplots = size(y,2)
+    nplots = size(ys,2)
 
-    @assert size(x) == size(y) "Number of points should be the same for both dimensions"
+    @assert size(xs) == size(ys) "Number of points should be the same for both dimensions"
 
     colors = if :col in keys(opts)
         col = pop!(opts, :col)
@@ -183,12 +185,12 @@ function plot{T<:Real}(x::AbstractMatrix{T}, y::AbstractMatrix{T}; kvopts...)
         [Int32(i%32) for i in 0:nplots]
     end
 
-    xmin, xmax = extrema(x)
-    ymin, ymax = extrema(y)
+    xmin, xmax = extrema(xs)
+    ymin, ymax = extrema(ys)
 
     pkvopts = [(k,v) for (k,v) in opts]
     for i in 1:nplots
-        plot(x[:,i], y[:,i]; col=colors[i], pch=glyphs[i],
+        plot(xs[:,i], ys[:,i]; col=colors[i], pch=glyphs[i],
              xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
              overlay=(i!=1), pkvopts...)
     end
@@ -202,10 +204,10 @@ Example:
     end
 ```
 """
-function plot{T<:Real}(y::AbstractMatrix{T}; kvopts...)
+function plot{T<:Real}(ys::AbstractMatrix{T}; kvopts...)
     npts = size(y,1)
     x = linspace(1, npts, npts)
-    plot(x, y; kvopts...)
+    plot(x, ys; kvopts...)
 end
 
 """Wrapper function for combines 'draw' and 'plot' calls.
@@ -219,3 +221,10 @@ function plot(drv::Symbol, opts...; kvopts...)
         plot(opts...; dopts...)
     end
 end
+
+
+plot!{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}; kvopts...) = plot(x, y; overlay=true, kvopts...)
+plot!{T<:Real}(y::AbstractVector{T}; kvopts...) = plot(y; overlay=true, kvopts...)
+plot!{T<:Real}(x::AbstractVector{T}, ys::AbstractMatrix{T}; kvopts...) = plot(x, ys; overlay=true, kvopts...)
+plot!{T<:Real}(xs::AbstractMatrix{T}, ys::AbstractMatrix{T}; kvopts...) = plot(xs, ys; overlay=true, kvopts...)
+plot!{T<:Real}(ys::AbstractMatrix{T}, kvopts...) = plot(xs; overlay=true, kvopts...)
