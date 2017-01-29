@@ -135,7 +135,7 @@ function plot{T<:Real}(x::AbstractVector{T}, ys::AbstractMatrix{T}; kvopts...)
     nplots = size(ys,2)
     kopts = keys(opts)
 
-    colors = if :col in kopts
+    colors = if haskey(opts, :col)
         col = pop!(opts, :col)
         @assert length(col) == nplots "Number of colors should correspond to number of graphs"
         col
@@ -144,7 +144,9 @@ function plot{T<:Real}(x::AbstractVector{T}, ys::AbstractMatrix{T}; kvopts...)
         colorindexes(nplots, skip)
     end
 
-    glyphs = if :pch in keys(opts)
+    plotglyphs = false
+    glyphs = if haskey(opts, :pch)
+        plotglyphs = true
         pch = pop!(opts, :pch)
         @assert length(pch) == nplots "Number of point glyphs should correspond to number of graphs"
         pch
@@ -155,11 +157,14 @@ function plot{T<:Real}(x::AbstractVector{T}, ys::AbstractMatrix{T}; kvopts...)
     xmin, xmax = extrema(x)
     ymin, ymax = extrema(ys)
 
-    pkvopts = [(k,v) for (k,v) in opts]
+    pkvopts = Tuple{Symbol,Any}[(k,v) for (k,v) in opts]
+    plotglyphs = plotglyphs || !(haskey(opts, :typ) && opts[:typ] == :line)
     for i in 1:nplots
-        plot(x, ys[:,i]; col=colors[i], pch=glyphs[i],
+        plotglyphs && push!(pkvopts, (:pch, glyphs[i]))
+        plot(x, ys[:,i]; col=colors[i],
              xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
              overlay=(i!=1), pkvopts...)
+        plotglyphs && pop!(pkvopts)
     end
 end
 
@@ -205,7 +210,7 @@ Example:
 ```
 """
 function plot{T<:Real}(ys::AbstractMatrix{T}; kvopts...)
-    npts = size(y,1)
+    npts = size(ys,1)
     x = linspace(1, npts, npts)
     plot(x, ys; kvopts...)
 end
