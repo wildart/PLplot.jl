@@ -2,7 +2,8 @@
 
 module PLplot
 
-    export draw, plot, scatter, lines, legend, plot3, scatter3, lines3, boxplot, histogram
+    export draw, plot, plot!, scatter, lines, legend, plot3, scatter3, lines3, boxplot, histogram,
+           color!
 
     # Link dependency
     depsfile = normpath(dirname(@__FILE__),"..","deps","deps.jl")
@@ -224,9 +225,7 @@ module PLplot
 
         # parse color theme parameter
         cmap = theme!(get(opts ,:theme, nothing))
-
-        # set colormap
-        cmap !== nothing && PLplot.setcolormap(cmap, index=0)
+        cmap !== nothing && setcolormap!(cmap)
 
         # initialize plotting
         plinit()

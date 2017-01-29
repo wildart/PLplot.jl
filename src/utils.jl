@@ -77,26 +77,38 @@ function pageparams!(; xdpi=-1., ydpi=-1., xlen=-1, ylen=-1, xoff=-1, yoff=-1)
     plspage(xdpi, ydpi, xlen, ylen, xoff, yoff)
 end
 
-"""Set color map0 colors by 8-bit RGB values
+"""Set color map `cmap` colors by 8-bit RGB values
 """
-function setcolormap(rgbcm::Array{Int32,2}, bgc=Int32[], fgc=Int32[]; index=0)
+function setcolormap!(rgbcm::Array{Int32,2}, bgc=Int32[], fgc=Int32[]; cmap=0)
     if length(bgc) == 3
         rgbcm[1,:] = bgc
     end
     if length(fgc) == 3
         rgbcm[2,:] = fgc
     end
-    setcolormap(rgbcm[:,1], rgbcm[:,2], rgbcm[:,3], index)
+    setcolormap!(rgbcm[:,1], rgbcm[:,2], rgbcm[:,3], cmap)
 end
 
-function setcolormap(R::Vector{Int32}, G::Vector{Int32}, B::Vector{Int32}, index=0)
+function setcolormap!(R::Vector{Int32}, G::Vector{Int32}, B::Vector{Int32}, cmap=0)
     @assert length(R) > 0 "Number of colors must be positive"
     @assert length(R) == length(G) == length(B) "Number of colors must be the same for each channel"
-    if index == 0
+    if cmap == 0
         plscmap0(R, G, B, Int32(length(R)))
     else
         plscmap1(R, G, B, Int32(length(R)))
     end
+    return
+end
+
+"""Set current color using `idx` from color map `cmap`
+"""
+function color!(idx, cmap=0)
+    if cmap == 0
+        plcol0(Int32(idx))
+    else
+        plcol1(Int32(idx))
+    end
+    return
 end
 
 """Get current subpage parameters
