@@ -18,6 +18,7 @@ module PLplot
     include("plot3d.jl")
     include("hist.jl")
     include("boxplot.jl")
+    include("abline.jl")
     include("utils.jl")
     include("ijulia.jl")
 
