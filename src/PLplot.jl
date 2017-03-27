@@ -20,7 +20,7 @@ module PLplot
     include("boxplot.jl")
     include("abline.jl")
     include("utils.jl")
-    include("ijulia.jl")
+    include("inline.jl")
 
     global THEME
     THEME = try
@@ -196,10 +196,9 @@ module PLplot
         # set device
         plsdev(string(device))
         viewer = device ∈ [:xwin, :xcairo, :wingcc, :wincairo, :tkwin, :tk, :wxwidgets]
-        ijulia = device ∈ [:svg, :svgcairo, :svgqt, :pngcairo, :pngqt]
 
         # read parameters
-        isinline = get(opts ,:inline, false)
+        isinline = get(opts ,:inline, !viewer)
         width = get(opts ,:width, default_graphic_width)
         height = get(opts ,:height, default_graphic_height)
 
@@ -211,9 +210,9 @@ module PLplot
             if viewer
                 nothing
             elseif haskey(opts, :file)
-                ijulia = false # disable inline plotting if filename is provided
+                isinline = false # disable inline plotting if filename is provided
                 string(opts[:file])
-            elseif ijulia
+            elseif isinline
                 tempname()
             else
                 warn("`file` parameter is not specified for `$device` device. Output will be saved to `default.plot`")
@@ -240,12 +239,14 @@ module PLplot
         isnull(fname) && return nothing
 
         # if inline flag set load image as byte array
-        if ijulia
+        if isinline
             io = open(get(fname), "r")
             res = if device ∈ [:svg, :svgcairo, :svgqt]
-                SVG(read(io))
+                Plot{SVG}(read(io))
             elseif device ∈ [:pngcairo, :pngqt]
-                PNG(read(io))
+                Plot{PNG}(read(io))
+            elseif device ∈ [:pdfcairo, :pdfqt]
+                Plot{PDF}(read(io))
             else
                 nothing
             end
