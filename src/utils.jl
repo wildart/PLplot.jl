@@ -154,31 +154,52 @@ end
 function legend(desc::Vector{String};
                 opt::Cint=Cint(PLplot.LEGEND_BACKGROUND) | Cint(PLplot.LEGEND_BOUNDING_BOX),
                 pos::Cint=Cint(PLplot.POSITION_VIEWPORT),
+                entry_opt = Cint(PLplot.LEGEND_LINE), entry_opts = Cint[],
                 x_offset::Cdouble=0.0, y_offset::Cdouble=0.0, width::Cdouble=0.1,
                 bg_color::Cint=Cint(0), bb_color::Cint=Cint(1), bb_style::Cint=Cint(1),
                 nrow::Cint=Cint(0), ncolumn::Cint=Cint(0),
                 text_offset::Cdouble=1.0, text_scale::Cdouble=1.0,
                 text_spacing::Cdouble=2.0, text_justification::Cdouble=1.0,
-                text_colors::Vector{Cint} = Cint[]
+                text_colors::Vector{Cint} = Cint[],
+                symbols = String[], symbol_colors = Cint[], symbol_scales = Cdouble[], symbol_numbers = Cint[],
+                line_styles = Cint[], line_widths = Cdouble[], line_colors = Cint[]
                 )
 
     nlegend = Cint(length(desc))
-    opt_array   = fill(Cint(PLplot.LEGEND_LINE), nlegend)
+    opt_array   = length(entry_opts) == 0 ? fill(entry_opt, nlegend) : entry_opts
+    # Text
+    text = [convert(Cstring, pointer(desc[i])) for i in 1:nlegend]
     if length(text_colors) == 0
         text_colors = colorindexes(nlegend)
     end
-    text = [convert(Cstring, pointer(desc[i])) for i in 1:nlegend]
+    # Box
     box_colors = Ptr{Cint}(C_NULL)
     box_patterns = Ptr{Cint}(C_NULL)
     box_scales = Ptr{Cdouble}(C_NULL)
     box_line_widths = Ptr{Cdouble}(C_NULL)
-    line_colors = text_colors
-    line_styles = [Cint(1) for i in 0:nlegend]
-    line_widths = [Cdouble(1.0) for i in 0:nlegend]
-    symbol_colors = text_colors
-    symbol_scales = Ptr{Cdouble}(C_NULL)
-    symbol_numbers = Ptr{Cint}(C_NULL)
-    symbols = Ptr{Cstring}(C_NULL)
+    # Lines
+    if length(line_colors) == 0
+        line_colors = text_colors
+    end
+    if length(line_styles) == 0
+        line_styles = [Cint(1) for i in 0:nlegend]
+    end
+    if length(line_widths) == 0
+        line_widths = [Cdouble(1.0) for i in 0:nlegend]
+    end
+    # Symbols
+    if length(symbols) == 0
+        symbols = Ptr{Cstring}(C_NULL)
+    end
+    if length(symbol_colors) == 0
+        symbol_colors = text_colors
+    end
+    if length(symbol_scales) == 0
+        symbol_scales = [Cdouble(1.0) for i in 0:nlegend]
+    end
+    if length(symbol_numbers) == 0
+        symbol_numbers = [Cint(1) for i in 0:nlegend]
+    end
 
     plw=Ref{Cdouble}(0)
     plh=Ref{Cdouble}(0)
