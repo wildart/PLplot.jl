@@ -2,30 +2,29 @@
 
     Integer code range: [0,31]
 """
-function scatter3{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}, z::AbstractVector{T}, g::Int32=Int32(23))
+function scatter3{T<:AbstractFloat}(x::AbstractVector{T}, y::AbstractVector{T}, z::AbstractVector{T}, g::Int32=Int32(23))
     @assert length(x) == length(y) == length(z) "Number of point should be equal for each axis"
     plpoin3(length(x), collect(x), collect(y), collect(z), g)
 end
 
 """Plot points with a specified glyph as character.
 """
-function scatter3{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}, z::AbstractVector{T}, g::Char)
+function scatter3{T<:AbstractFloat}(x::AbstractVector{T}, y::AbstractVector{T}, z::AbstractVector{T}, g::Char)
     hc =  get(PLplot.hershey, g, Int32(23))
     scatter3d(x, y, z, hc)
 end
 
 """Draws line in 3 space defined by in x, y and z.
 """
-function lines3{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}, z::AbstractVector{T})
+function lines3{T<:AbstractFloat}(x::AbstractVector{T}, y::AbstractVector{T}, z::AbstractVector{T})
     @assert length(x) == length(y) == length(z) "Number of point should be equal for each axis"
     plline3(length(x), collect(x), collect(y), collect(z))
 end
 
 """Plots a three dimensional surface plot
 """
-function mesh3d{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}, z::AbstractMatrix{T};
-                         opt3d::PLINT = Cint(DRAW_LINEXY), kvopts...)
-    mesh3d(x, y, [z[:,i] for i in 1:size(z,2)], opt3d, kvopts...)
+function mesh3d{T<:AbstractFloat}(x::AbstractVector{T}, y::AbstractVector{T}, z::Matrix{T}; kvopts...)
+    mesh3d(collect(x), collect(y), [z[:,i] for i in 1:size(z,2)], opt3d=opt3d, kvopts...)
 end
 
 """Plots a surface mesh
@@ -34,12 +33,12 @@ end
   - **sides**, indicates whether or not sides should be draw on the figure. Values: **true** or **false**.
   - **contour**, array that defines the contour level spacing.
 """
-function mesh3d{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}, z::Vector{Vector{T}};
-                         opt3d::PLINT = Cint(DRAW_LINEXY), kvopts...)
+function mesh3d{T<:AbstractFloat}(x::Vector{T}, y::Vector{T}, z::Vector{Vector{T}}; kvopts...)
     @assert length(x) == length(z) "Number of rows in 'z' should be equal to elements in 'x'"
     @assert length(y) == length(z[1]) "Number of columns in 'z' should be equal to elements in 'y'"
 
     sides = -1
+    opt3d = Cint(DRAW_LINEXY)
     contour = nothing
     for (ko, kv) in kvopts
         if ko == :sides
@@ -48,12 +47,14 @@ function mesh3d{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}, z::Vector{V
             if isa(kv, Vector{PLFLT}) 
                 contour = kv
             end
+        elseif ko == :opt3d
+            opt3d = convert(Cint, kv)
         end
     end
 
     if contour === nothing
-        if side < 0
-            plmesh(collect(x), collect(y), z, length(x), length(y), opt)
+        if sides < 0
+            plmesh(collect(x), collect(y), z, length(x), length(y), opt3d)
         else
             plot3d(collect(x), collect(y), z, length(x), length(y), opt3d, Cint(sides))
         end
@@ -82,7 +83,7 @@ Example:
     end
 ```
 """
-function plot3{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}, z::AbstractVector{T}; kvopts...)
+function plot3{T<:AbstractFloat}(x::AbstractVector{T}, y::AbstractVector{T}, z::AbstractVector{T}; kvopts...)
     # get extreme points
     xmin, xmax = extrema(x)
     ymin, ymax = extrema(y)
@@ -172,7 +173,7 @@ function plot3{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}, z::AbstractV
     return
 end
 
-function plot3{T<:Real}(coords::AbstractMatrix{T}; kvopts...)
+function plot3{T<:AbstractFloat}(coords::AbstractMatrix{T}; kvopts...)
     @assert size(coords,2) == 3 "Input matrix should have 3 columns"
     plot3(coords[:,1], coords[:,2], coords[:,3]; kvopts...)
 end
