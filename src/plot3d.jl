@@ -24,7 +24,7 @@ end
 """Plots a three dimensional surface plot
 """
 function mesh3d{T<:AbstractFloat}(x::AbstractVector{T}, y::AbstractVector{T}, z::Matrix{T}; kvopts...)
-    mesh3d(collect(x), collect(y), [z[:,i] for i in 1:size(z,2)], opt3d=opt3d, kvopts...)
+    mesh3d(collect(x), collect(y), [z[:,i] for i in 1:size(z,2)], kvopts...)
 end
 
 """Plots a surface mesh
@@ -44,7 +44,7 @@ function mesh3d{T<:AbstractFloat}(x::Vector{T}, y::Vector{T}, z::Vector{Vector{T
         if ko == :sides
             sides = convert(Cint, kv)
         elseif ko == :contour
-            if isa(kv, Vector{PLFLT}) 
+            if isa(kv, Vector{PLFLT})
                 contour = kv
             end
         elseif ko == :opt3d
