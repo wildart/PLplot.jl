@@ -33,15 +33,6 @@ module PLplot
         nothing
     end
 
-    # try
-    #     eval(:(import Gadfly))
-    #     include("gadfly.jl")
-    # catch
-    #     global PLP
-    #     PLP(::String, ::MeasureOrNumber, ::MeasureOrNumber) =
-    #         error("PLplot must be installed to use the PLplot backend.")
-    # end
-
     @enum(AxisScale, NotSet=-1,
                      Independent=0,
                      Equal=1,
