@@ -5,18 +5,18 @@ immutable GraphicsInput
     state::Cuint  # key or button mask
     keysym::Cuint # key selected
     button::Cuint # mouse button selected
-    subwindow::PLplot.PLINT # subwindow (alias subpage, alias subplot) number
+    subwindow::PLINT # subwindow (alias subpage, alias subplot) number
     translated::NTuple{16,Cchar} # translated string
     pX::Cint # absolute device coordinates of pointer
     pY::Cint
-    dX::PLplot.PLFLT  # relative device coordinates of pointer
-    dY::PLplot.PLFLT
-    wX::PLplot.PLFLT  # world coordinates of pointer
-    wY::PLplot.PLFLT
+    dX::PLFLT  # relative device coordinates of pointer
+    dY::PLFLT
+    wX::PLFLT  # world coordinates of pointer
+    wY::PLFLT
 
-    GraphicsInput() = new(zero(Cint), zero(Cuint), zero(Cuint), zero(Cuint), zero(PLplot.PLINT),
+    GraphicsInput() = new(zero(Cint), zero(Cuint), zero(Cuint), zero(Cuint), zero(PLINT),
                          ntuple(x->zero(Cchar),16), zero(Cint), zero(Cint),
-                         zero(PLplot.PLFLT), zero(PLplot.PLFLT), zero(PLplot.PLFLT), zero(PLplot.PLFLT))
+                         zero(PLFLT), zero(PLFLT), zero(PLFLT), zero(PLFLT))
 end
 
 """Wait for graphics input event and translate to world coordinates.
@@ -152,9 +152,9 @@ end
 """Legend
 """
 function legend(desc::Vector{String};
-                opt::Cint=Cint(PLplot.LEGEND_BACKGROUND) | Cint(PLplot.LEGEND_BOUNDING_BOX),
-                pos::Cint=Cint(PLplot.POSITION_VIEWPORT),
-                entry_opt = Cint(PLplot.LEGEND_LINE), entry_opts = Cint[],
+                opt::Cint=Cint(LEGEND_BACKGROUND) | Cint(LEGEND_BOUNDING_BOX),
+                pos::Cint=Cint(POSITION_VIEWPORT),
+                entry_opt = Cint(LEGEND_LINE), entry_opts = Cint[],
                 x_offset::Cdouble=0.0, y_offset::Cdouble=0.0, width::Cdouble=0.1,
                 bg_color::Cint=Cint(0), bb_color::Cint=Cint(1), bb_style::Cint=Cint(1),
                 nrow::Cint=Cint(0), ncolumn::Cint=Cint(0),
@@ -203,17 +203,17 @@ function legend(desc::Vector{String};
 
     plw=Ref{Cdouble}(0)
     plh=Ref{Cdouble}(0)
-    PLplot.pllegend(plw, plh, opt, pos,
-                    x_offset, y_offset, width,
-                    bg_color, bb_color, bb_style,
-                    nrow, ncolumn,
-                    nlegend, opt_array,
-                    text_offset, text_scale, text_spacing, text_justification,
-                    text_colors, text,
-                    box_colors, box_patterns, box_scales, box_line_widths,
-                    line_colors, line_styles, line_widths,
-                    symbol_colors, symbol_scales, symbol_numbers,
-                    symbols)
+    pllegend(plw, plh, opt, pos,
+            x_offset, y_offset, width,
+            bg_color, bb_color, bb_style,
+            nrow, ncolumn,
+            nlegend, opt_array,
+            text_offset, text_scale, text_spacing, text_justification,
+            text_colors, text,
+            box_colors, box_patterns, box_scales, box_line_widths,
+            line_colors, line_styles, line_widths,
+            symbol_colors, symbol_scales, symbol_numbers,
+            symbols)
     return (plw[], plh[])
 end
 
@@ -250,6 +250,12 @@ function colorindexes(n, skip=0)
         i+=1
     end
     return idxs
+end
+
+"""Generate levels vector"""
+function levels(levelMin, levelMax, levelNum)
+    levelInc = (ceil(levelMax)-floor(levelMin))/levelNum
+    return collect(floor(levelMin):levelInc:ceil(levelMax))
 end
 
 # Conversion rules for options

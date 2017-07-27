@@ -3,7 +3,7 @@
 module PLplot
 
     export draw, plot, plot!, scatter, lines, legend, plot3, scatter3, lines3, boxplot, histogram,
-           color!
+           color!, contour
 
     # Link dependency
     depsfile = normpath(dirname(@__FILE__),"..","deps","deps.jl")
@@ -21,6 +21,7 @@ module PLplot
     include("abline.jl")
     include("utils.jl")
     include("inline.jl")
+    include("contour.jl")
 
     global THEME
     THEME = try
@@ -83,7 +84,7 @@ module PLplot
 
     const AxisBoxParams = Dict(
         zip(
-            map(Int32, instances(PLplot.AxisBox)),
+            map(Int32, instances(AxisBox)),
             [
                 ("", "")
                 ("bc", "bc")

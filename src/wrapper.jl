@@ -1,7 +1,27 @@
-typealias PLINT  Cint
-typealias PLUINT Cuint
-typealias PLFLT  Cdouble
-typealias PLSTR  Cstring
+const PLINT = Cint
+const PLUINT = Cuint
+const PLFLT = Cdouble
+const PLSTR = Cstring
+
+struct Grid
+    xgp::Ptr{PLFLT}
+    ygp::Ptr{PLFLT}
+    zgp::Ptr{PLFLT}
+    nx::PLINT
+    ny::PLINT
+    nz::PLINT
+    xg::Vector{PLFLT}
+    yg::Vector{PLFLT}
+    zg::Vector{PLFLT}
+end
+Grid(x::Vector{PLFLT}, y::Vector{PLFLT}, z=zeros(PLFLT,0)) =
+    Grid(pointer(x), pointer(y), pointer(z), length(x), length(y), length(z), x, y, z)
+function Grid(nx, ny, nz=0)
+    x = zeros(PLFLT,nx)
+    y = zeros(PLFLT,ny)
+    z = zeros(PLFLT,nz)
+    Grid(pointer(x), pointer(y), pointer(z), PLINT(nx), PLINT(ny), PLINT(nz), x, y, z)
+end
 
 recurs_type(dt::DataType) = dt <: Ptr ? Expr(:curly, :Ptr, recurs_type(dt.parameters[1])) : Symbol(dt)
 
@@ -175,7 +195,7 @@ plfuncs = [
 ( :plwidth                  ,( PLFLT, ) ),
 ( :plwind                   ,( PLFLT, PLFLT, PLFLT, PLFLT ) ),
 ( :plxormod                 ,( PLINT, Ptr{PLINT} ) ),
-( :plgpcnt                  ,( Ptr{PLINT}, ) )
+( :plgpcnt                  ,( Ptr{PLINT}, ) ),
 ]
 
 blk = quote end
@@ -183,6 +203,21 @@ for (func, arg_types) in plfuncs
     _arg_types = Expr(:tuple, [recurs_type(a) for a in arg_types]...)
     _args_in = Any[ Symbol(string('a',x)) for (x,t) in enumerate(arg_types) ]
     _fname = "c_"*string(func)
+    push!(blk.args, :($(func)($(_args_in...)) = ccall( ($_fname, $libplplot ), Void, $_arg_types, $(_args_in...) )) )
+    push!(blk.args, nothing)
+end
+eval(blk)
+
+# transformation functions
+blk = quote end
+for (func, arg_types) in  [
+( :pltr0                    ,( PLFLT, PLFLT, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{Void}) ),
+( :pltr1                    ,( PLFLT, PLFLT, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{Void}) ),
+( :pltr2                    ,( PLFLT, PLFLT, Ptr{PLFLT}, Ptr{PLFLT}, Ptr{Void}) ),
+]
+    _arg_types = Expr(:tuple, [recurs_type(a) for a in arg_types]...)
+    _args_in = Any[ Symbol(string('a',x)) for (x,t) in enumerate(arg_types) ]
+    _fname = string(func)
     push!(blk.args, :($(func)($(_args_in...)) = ccall( ($_fname, $libplplot ), Void, $_arg_types, $(_args_in...) )) )
     push!(blk.args, nothing)
 end

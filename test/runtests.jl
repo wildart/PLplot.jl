@@ -2,7 +2,7 @@ using PLplot
 using Base.Test
 
 @testset "General" begin
-    @test PLplot.verison() == v"5.11.1"
+    @test PLplot.verison() >= v"5.11.1"
 end
 
 
