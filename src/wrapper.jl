@@ -3,7 +3,7 @@ const PLUINT = Cuint
 const PLFLT = Cdouble
 const PLSTR = Cstring
 
-struct Grid
+immutable Grid
     xgp::Ptr{PLFLT}
     ygp::Ptr{PLFLT}
     zgp::Ptr{PLFLT}
