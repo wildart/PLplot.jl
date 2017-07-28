@@ -9,7 +9,7 @@ plplot_url = "https://sourceforge.net/code-snapshots/git/p/pl/plplot/plplot.git/
 shapelib_arc = "shapelib-1.3.0"
 shapelib_url = "http://download.osgeo.org/shapelib/$(shapelib_arc).zip"
 
-libshp = library_dependency("libshp")
+libshp = library_dependency("libshp", os = :Unix)
 libplplot = library_dependency("libplplot")
 
 srcdir = joinpath(BinDeps.srcdir(libplplot))
@@ -19,10 +19,6 @@ instdir = joinpath(BinDeps.usrdir(libplplot))
 
 provides(Sources, URI(shapelib_url), libshp)
 provides(Sources, URI(plplot_url), libplplot)
-provides(Binaries,URI("https://github.com/wildart/PLplot.jl/releases/download/v0.1.0/libplplot-$(version)-julia-$VERSION-x86_64.tar.gz"),
-         libplplot,
-         unpacked_dir=BinDeps.libdir(libplplot),
-         os = :Windows)
 
 shapelib_dir = joinpath(srcdir, shapelib_arc)
 libshp_file = libshp.name*".a"
@@ -54,6 +50,11 @@ provides(BuildProcess,
                 end)
             end
         end
-    end), [libplplot, libshp])
+    end), [libplplot, libshp], os = :Unix)
+
+provides(Binaries,
+    URI("https://github.com/wildart/PLplot.jl/releases/download/v0.1.0/libplplot-$(version)-julia-$VERSION-x86_64.tar.gz"),
+    libplplot,
+    unpacked_dir=".", os = :Windows)
 
 @BinDeps.install Dict( :libplplot => :libplplot )
