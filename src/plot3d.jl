@@ -87,7 +87,7 @@ function plot3{T<:AbstractFloat}(x::AbstractVector{T}, y::AbstractVector{T}, z::
     # get extreme points
     xmin, xmax = extrema(x)
     ymin, ymax = extrema(y)
-    zmin, zmax = extrema(y)
+    zmin, zmax = extrema(z)
 
     # parse KV parameters
     opts = Dict(kvopts)
