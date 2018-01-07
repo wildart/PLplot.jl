@@ -2,8 +2,8 @@ using BinDeps
 
 @BinDeps.setup
 
-version = "5.12.0"
-versha = "eaacae285937a991e23fb34aeebc12a789be12a8"
+version = "5.13.0"
+versha = "2bb601d5b3f0d97b43ea855c7bb0461eb2dd2247"
 plplot_arc = "plplot-plplot-$versha"
 plplot_url = "https://sourceforge.net/code-snapshots/git/p/pl/plplot/plplot.git/plplot-plplot-$versha.zip"
 shapelib_arc = "shapelib-1.3.0"
