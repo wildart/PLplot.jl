@@ -3,13 +3,11 @@ using BinDeps
 @BinDeps.setup
 
 version = "5.13.0"
-versha = "2bb601d5b3f0d97b43ea855c7bb0461eb2dd2247"
-plplot_arc = "plplot-plplot-$versha"
-plplot_url = "https://sourceforge.net/code-snapshots/git/p/pl/plplot/plplot.git/plplot-plplot-$versha.zip"
+plplot_arc = "PLplot-plplot-$version"
+plplot_url = "https://github.com/PLplot/PLplot/archive/plplot-$version.tar.gz"
 shapelib_arc = "shapelib-1.3.0"
 shapelib_url = "http://download.osgeo.org/shapelib/$(shapelib_arc).zip"
 
-libshp = library_dependency("libshp", os = :Unix)
 libplplot = library_dependency("libplplot")
 
 srcdir = joinpath(BinDeps.srcdir(libplplot))
@@ -17,12 +15,9 @@ incdir = joinpath(BinDeps.includedir(libplplot))
 libdir = joinpath(BinDeps.libdir(libplplot))
 instdir = joinpath(BinDeps.usrdir(libplplot))
 
-provides(Sources, URI(shapelib_url), libshp)
-provides(Sources, URI(plplot_url), libplplot)
+provides(Sources, URI(plplot_url), libplplot, unpacked_dir=plplot_arc)
 
 shapelib_dir = joinpath(srcdir, shapelib_arc)
-libshp_file = libshp.name*".a"
-
 libplplot_dir = joinpath(srcdir, plplot_arc)
 libplplotbuild = joinpath(libplplot_dir, "build")
 libplplotfile = joinpath(libdir, libplplot.name*"."*Libdl.dlext)
@@ -32,12 +27,13 @@ provides(BuildProcess,
         CreateDirectory(libdir)
         CreateDirectory(incdir)
         @build_steps begin
-            GetSources(libshp)
-            FileRule(joinpath(shapelib_dir, libshp_file), @build_steps begin
+            BinDeps.prepare_src(BinDeps.depsdir(libplplot), shapelib_url, "$(shapelib_arc).zip", shapelib_arc)
+            @build_steps begin
+                ChangeDirectory(joinpath(BinDeps.depsdir(libplplot), "src", shapelib_arc))
                 MakeTargets(shapelib_dir, ["lib"])
-                `cp $(joinpath(shapelib_dir, libshp_file)) $libdir`
+                `cp $(joinpath(shapelib_dir, "libshp.a")) $libdir`
                 `cp $(joinpath(shapelib_dir, "shapefil.h")) $incdir`
-            end)
+            end
         end
         @build_steps begin
             GetSources(libplplot)
@@ -45,12 +41,12 @@ provides(BuildProcess,
             @build_steps begin
                 ChangeDirectory(libplplotbuild)
                 FileRule(libplplotfile, @build_steps begin
-                    `cmake -DHAVE_SHAPELIB=ON -DENABLE_f95=OFF -DENABLE_python=OFF -DENABLE_cxx=OFF -DBUILD_TEST=OFF -DCMAKE_INSTALL_PREFIX=$(instdir) ..`
+                    `cmake -DHAVE_SHAPELIB=ON -DENABLE_fortran=OFF -DENABLE_python=OFF -DENABLE_cxx=OFF -DBUILD_TEST=OFF -DCMAKE_INSTALL_PREFIX=$(instdir) ..`
                     `make install`
                 end)
             end
         end
-    end), [libplplot, libshp], os = :Unix)
+    end), [libplplot], os = :Unix)
 
 provides(Binaries,
     URI("https://github.com/wildart/PLplot.jl/releases/download/v0.1.0/libplplot-$(version)-julia-$VERSION-x86_64.tar.gz"),
