@@ -193,6 +193,7 @@ module PLplot
         isinline = get(opts ,:inline, !viewer)
         width = get(opts ,:width, default_graphic_width)
         height = get(opts ,:height, default_graphic_height)
+        portrait = PLINT(get(opts ,:portrait, false))
 
         # set image size
         pageparams!(xlen=width, ylen=height)
@@ -201,8 +202,7 @@ module PLplot
         fname = Nullable{String}(
             if viewer
                 nothing
-            elseif haskey(opts, :file)
-                isinline = false # disable inline plotting if filename is provided
+            elseif haskey(opts, :file) && !isinline
                 string(opts[:file])
             elseif isinline
                 tempname()
@@ -222,6 +222,7 @@ module PLplot
         # initialize plotting
         plinit()
         try
+            plsori(portrait)
             plotting(kvopts)
         finally
             plend()

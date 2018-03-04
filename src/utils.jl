@@ -79,23 +79,29 @@ end
 
 """Set color map `cmap` colors by 8-bit RGB values
 """
-function setcolormap!(rgbcm::Array{Int32,2}, bgc=Int32[], fgc=Int32[]; cmap=0)
+function setcolormap!(rgbcm::Array{PLINT,2}, bgc=PLINT[], fgc=PLINT[]; cmap=0, interpolate=false)
     if length(bgc) == 3
         rgbcm[1,:] = bgc
     end
     if length(fgc) == 3
         rgbcm[2,:] = fgc
     end
-    setcolormap!(rgbcm[:,1], rgbcm[:,2], rgbcm[:,3], cmap)
+    setcolormap!(rgbcm[:,1], rgbcm[:,2], rgbcm[:,3], cmap, (interpolate && cmap == 1))
 end
 
-function setcolormap!(R::Vector{Int32}, G::Vector{Int32}, B::Vector{Int32}, cmap=0)
-    @assert length(R) > 0 "Number of colors must be positive"
-    @assert length(R) == length(G) == length(B) "Number of colors must be the same for each channel"
+function setcolormap!(R::Vector{PLINT}, G::Vector{PLINT}, B::Vector{PLINT}, cmap=0, interpolate=false)
+    l = convert(PLINT, length(R))
+    @assert l > 0 "Number of colors must be positive"
+    @assert l == length(G) == length(B) "Number of colors must be the same for each channel"
     if cmap == 0
-        plscmap0(R, G, B, Int32(length(R)))
+        plscmap0(R, G, B, l)
     else
-        plscmap1(R, G, B, Int32(length(R)))
+        if interpolate
+            pos = collect(linspace(zero(PLFLT), one(PLFLT), l))
+            plscmap1l(one(PLINT), l, pos, R./255f0, G./255f0, B./255f0, Ptr{PLINT}(C_NULL))
+        else
+            plscmap1(R, G, B, l)
+        end
     end
     return
 end
@@ -104,9 +110,9 @@ end
 """
 function color!(idx, cmap=0)
     if cmap == 0
-        plcol0(Int32(idx))
+        plcol0(convert(PLINT, idx))
     else
-        plcol1(Int32(idx))
+        plcol1(convert(PLFLT, idx))
     end
     return
 end

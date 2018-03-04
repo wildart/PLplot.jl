@@ -72,12 +72,13 @@ function plot{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}; kvopts...)
     ymaxvp     = get(opts, :ymaxvp, 0.85)
     ptype      = get(opts, :typ, :point)
     boxcolor   = Int32(get(opts, :boxcol, 1))
-    datacolor  = Int32(get(opts, :col, 1))
     overlay    = get(opts, :overlay, false)
     pen        = get(opts, :pen, 1.)
     xtitle     = get(opts, :xlab, "")
     ytitle     = get(opts, :ylab, "")
     title      = get(opts, :title, "")
+    datacolor  = get(opts, :col, 1)
+    datacolor  = isa(datacolor, Integer) || datacolor > 1 ? round(PLINT, datacolor) : convert(PLFLT, datacolor)
 
     hc = Int32(23)
     drawpoints = false
@@ -112,7 +113,11 @@ function plot{T<:Real}(x::AbstractVector{T}, y::AbstractVector{T}; kvopts...)
         end
     end
 
-    plcol0(datacolor)
+    if isa(datacolor, PLINT)
+        plcol0(datacolor)
+    else
+        plcol1(datacolor)
+    end
     pen != 1.0 && plwidth(pen) # set pen widths if available
 
     # plot points
